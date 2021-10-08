@@ -1,4 +1,4 @@
-# v2-sweater-palette
+# Sweater Palettes
 
 ## Project setup
 ```
