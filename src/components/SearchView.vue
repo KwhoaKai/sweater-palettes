@@ -8,7 +8,6 @@
       </v-col>
       <v-spacer></v-spacer>
       <v-col :md="6" :lg="7" :xl="7" class="text-left">
-        <!-- <p id="prompt">Please select five colors.</p> -->
         <PaletteBuilder
           :userColors="userColors"
           @setUserColors="setUserColors"
@@ -27,17 +26,8 @@
       </v-btn> -->
     </v-row>
 
-    <!-- <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br /> -->
-
     <transition name="fade">
-      <div id="stepsDiv" v-if="showSteps">
+      <div id="stepsDiv" style="float: left" v-if="showSteps">
         <transition name="fade">
           <h1 v-show="show1" class="stepText" style="text-align: left">
             00 - CREATE A COLOR PALETTE
@@ -57,12 +47,17 @@
         </transition>
       </div>
     </transition>
+    <transition name="fade">
+      <div v-if="showGif" id="introGifDiv" style="float: right">
+        <img class="introGifWidth" src="sweaterScroll.gif" />
+      </div>
+    </transition>
+
+    <div id="imgDiv"></div>
 
     <!-- <h1 class="lom" style="text-align: left">00 - CREATE A COLOR PALETTE</h1>
     <h1 class="lom" style="text-align: left">01 - FIND SWEATERS</h1> 
     <h1 class="lom" style="text-align: left">02 - BE HAPPY(?)</h1> -->
-
-    <div id="imgDiv"></div>
   </v-container>
 </template>
 
@@ -98,6 +93,8 @@ export default {
       show2: false,
       show3: false,
       showSteps: true,
+      stepsFaded: false,
+      showGif: true,
     };
   },
   components: {
@@ -105,22 +102,23 @@ export default {
     // TastyBurgerButton,
   },
   mounted() {
+    this.showGif = true;
     let interval = 700;
-    setInterval(
+    setTimeout(
       function () {
         this.show1 = true;
       }.bind(this),
       interval
     );
 
-    setInterval(
+    setTimeout(
       function () {
         this.show2 = true;
       }.bind(this),
       interval * 2
     );
 
-    setInterval(
+    setTimeout(
       function () {
         this.show3 = true;
       }.bind(this),
@@ -136,10 +134,12 @@ export default {
     // perform some checks here, then search
     searchClicked: function () {
       this.showSteps = false;
+      this.showGif = false;
       console.log(
         "this.userColors in searchview before search",
         this.userColors
       );
+
       this.searchImgs();
     },
     //Find x images w/min MICDP distance to to user palette (this.userColors)
@@ -173,19 +173,28 @@ export default {
         return a.dist - b.dist;
       });
 
-      console.log(distArr.slice(0, 3));
-      this.appendImages(distArr);
+      console.log(distArr.slice(0, 3), "fuck");
+      console.log(distArr);
+      // this.appendImages(distArr);
+
+      setTimeout(
+        function () {
+          this.appendImages(distArr);
+        }.bind(this),
+        600
+      );
+
       // console.log(diff);
     },
     appendImages(distArr) {
-      for (let i = 0; i < this.numResults; i++) {
-        // console.log(distArr[i].key);
-        // let img = document.createElement("img");
-        // img.src = `images/${distArr[i].key}`;
-        // img.width = 350;
-        // let imgDiv = document.getElementById("imgDiv");
-        // imgDiv.appendChild(img);
-      }
+      // for (let i = 0; i < this.numResults; i++) {
+      //   console.log(distArr[i].key);
+      //   let img = document.createElement("img");
+      //   img.src = `images/${distArr[i].key}`;
+      //   img.width = 350;
+      //   let imgDiv = document.getElementById("imgDiv");
+      //   imgDiv.appendChild(img);
+      // }
 
       for (let i = 0; i < this.numResults; i++) {
         let key = distArr[i].key;
@@ -272,6 +281,7 @@ export default {
       let grandAvg = (distAvgPal1 + distAvgPal2) / 2;
       return grandAvg;
     },
+
     /**
      * Returns minimum CIEDE200 color difference between col and all colors in pal
      * @param {obj} col    Should have fields r,g,b
@@ -401,7 +411,12 @@ p {
   padding-top: 15%;
 }
 
-@media screen and (max-width: 768px) {
+#introGifDiv {
+  width: 30rem;
+  padding-top: 7%;
+}
+
+@media screen and (min-width: 768px) {
   .titleText {
     font-size: 4em;
     line-height: 0.85em;
@@ -412,6 +427,10 @@ p {
     font-family: proxima-nova, sans-serif;
     font-size: 2em;
     font-weight: 300;
+  }
+
+  .introGifWidth {
+    width: 20rem;
   }
 }
 
@@ -427,6 +446,10 @@ p {
     font-size: 2em;
     font-weight: 300;
   }
+
+  .introGifWidth {
+    width: 24rem;
+  }
 }
 
 @media screen and (min-width: 1280px) {
@@ -441,6 +464,10 @@ p {
     font-family: proxima-nova, sans-serif;
     font-size: 2em;
     font-weight: 300;
+  }
+
+  .introGifWidth {
+    width: 30rem;
   }
 }
 </style>
