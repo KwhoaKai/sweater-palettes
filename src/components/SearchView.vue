@@ -14,16 +14,6 @@
           @searchClicked="searchClicked"
         />
       </v-col>
-
-      <!-- <v-btn
-        v-on:click="searchClicked"
-        elevation="2"
-        outlined
-        :ripple="false"
-        :depressed="false"
-        class="justify-center"
-        >Search
-      </v-btn> -->
     </v-row>
 
     <transition name="fade">
@@ -53,8 +43,9 @@
       </div>
     </transition>
 
-    <div id="imgDiv"></div>
-
+    <transition name="fade">
+      <div id="imgDiv" v-show="showImgs"></div>
+    </transition>
     <!-- <h1 class="lom" style="text-align: left">00 - CREATE A COLOR PALETTE</h1>
     <h1 class="lom" style="text-align: left">01 - FIND SWEATERS</h1> 
     <h1 class="lom" style="text-align: left">02 - BE HAPPY(?)</h1> -->
@@ -95,6 +86,7 @@ export default {
       showSteps: true,
       stepsFaded: false,
       showGif: true,
+      showImgs: false,
     };
   },
   components: {
@@ -208,7 +200,7 @@ export default {
         let cap = document.createElement("p");
         cap.innerHTML = capText;
 
-        // sweater distance
+        // sweater distanced
         let distText = distArr[i].dist;
         let dist = document.createElement("p");
         dist.innerHTML = `MICDP Distance: ${distText.toFixed(2)}`;
@@ -245,6 +237,7 @@ export default {
         imgScroll.appendChild(imgDiv);
         //console.log(data[key].name);
       }
+      this.showImgs = true;
     },
     /**
      * Return MICDP distance between two color palettes.
@@ -357,6 +350,21 @@ export default {
 #prompt {
   margin: 0px auto 3% auto;
   /* padding-bottom: 10px; */
+}
+
+/* #imgDiv {
+  opacity: 0;
+  transition: 2s opacity;
+}
+
+#imgDiv.fadein {
+  opacity: 1;
+  transition: 1s opacity;
+} */
+
+.fadein {
+  transition-property: opacity;
+  transition-duration: 1s;
 }
 
 .img_div {
