@@ -7,7 +7,7 @@
     <v-col class="no-pr no-pb pad-t12" :lg="10" :md="10" no-gutters>
       <!-- <p>Please select five colors.</p> -->
       <span style="float: left" class="text-bold bar-toptext">
-        请你选五个颜色 - PLEASE SELECT 5 COLORS
+        请选择五种颜色 - PLEASE SELECT 5 COLORS
       </span>
       <p style="float: right" class="text-bold bar-toptext trans-left">
         2021年 - 9月

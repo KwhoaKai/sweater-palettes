@@ -27,14 +27,14 @@
       </v-btn> -->
     </v-row>
 
+    <!-- <br />
     <br />
     <br />
     <br />
     <br />
     <br />
     <br />
-    <br />
-    <br />
+    <br /> -->
 
     <transition name="fade">
       <div id="stepsDiv" v-if="showSteps">
@@ -301,7 +301,7 @@ export default {
   height: 10000000px;
   transform: translate(-280%, -10%);
   width: 5px;
-  border-left: 3px solid black;
+  border-left: 2px solid black;
 }
 
 .fade-enter-active {
@@ -395,6 +395,10 @@ p {
   border-top: 3px solid black;
   border-right: 3px solid black;
   border-bottom: 3px solid black;
+}
+
+#stepsDiv {
+  padding-top: 15%;
 }
 
 @media screen and (max-width: 768px) {
