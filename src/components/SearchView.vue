@@ -56,7 +56,7 @@
 import PaletteBuilder from "@/components/PaletteBuilder.vue";
 import _ from "lodash";
 import * as diff from "color-diff";
-import VueTypedJs from "vue-typed-js";
+// import VueTypedJs from "vue-typed-js";
 export default {
   name: "SearchView",
   props: {
@@ -65,13 +65,6 @@ export default {
   },
   data() {
     return {
-      // userColors: [
-      //   { i: 0, r: 0, g: 63, b: 92 }, // index used to track blocks
-      //   { i: 1, r: 88, g: 80, b: 141 },
-      //   { i: 2, r: 188, g: 80, b: 144 },
-      //   { i: 3, r: 255, g: 100, b: 97 },
-      //   { i: 4, r: 255, g: 166, b: 0 },
-      // ],
       userColors: [
         { i: 0, r: 212, g: 212, b: 212 }, // index used to track blocks
         { i: 1, r: 175, g: 175, b: 175 },
@@ -91,7 +84,6 @@ export default {
   },
   components: {
     PaletteBuilder,
-    // TastyBurgerButton,
   },
   mounted() {
     this.showGif = true;
@@ -125,8 +117,10 @@ export default {
     },
     // perform some checks here, then search
     searchClicked: function () {
+      this.showImgs = false;
       this.showSteps = false;
       this.showGif = false;
+
       console.log(
         "this.userColors in searchview before search",
         this.userColors
@@ -134,7 +128,7 @@ export default {
 
       this.searchImgs();
     },
-    //Find x images w/min MICDP distance to to user palette (this.userColors)
+    // Find x images w/min MICDP distance to to user palette (this.userColors)
     searchImgs: function () {
       console.log("searching with these colors: ", this.userColors);
       let imgKeys = Object.keys(this.imgDict);
@@ -171,6 +165,8 @@ export default {
 
       setTimeout(
         function () {
+          let imgDiv = document.getElementById("imgDiv");
+          imgDiv.textContent = "";
           this.appendImages(distArr);
         }.bind(this),
         600
@@ -179,15 +175,6 @@ export default {
       // console.log(diff);
     },
     appendImages(distArr) {
-      // for (let i = 0; i < this.numResults; i++) {
-      //   console.log(distArr[i].key);
-      //   let img = document.createElement("img");
-      //   img.src = `images/${distArr[i].key}`;
-      //   img.width = 350;
-      //   let imgDiv = document.getElementById("imgDiv");
-      //   imgDiv.appendChild(img);
-      // }
-
       for (let i = 0; i < this.numResults; i++) {
         let key = distArr[i].key;
         // sweater div
@@ -237,6 +224,7 @@ export default {
         imgScroll.appendChild(imgDiv);
         //console.log(data[key].name);
       }
+
       this.showImgs = true;
     },
     /**
@@ -308,7 +296,7 @@ export default {
 }
 
 .fade-enter-active {
-  transition: opacity 0.4s;
+  transition: opacity 0.2s;
 }
 
 .fade-leave-active {
@@ -351,16 +339,6 @@ export default {
   margin: 0px auto 3% auto;
   /* padding-bottom: 10px; */
 }
-
-/* #imgDiv {
-  opacity: 0;
-  transition: 2s opacity;
-}
-
-#imgDiv.fadein {
-  opacity: 1;
-  transition: 1s opacity;
-} */
 
 .fadein {
   transition-property: opacity;
