@@ -1,5 +1,9 @@
 # Sweater Palettes
 
+
+A visual index of two thousand outerwear pieces, searchable by color palette. 
+Build a color palette and find designer outerwear pieces ordered by color similarity. 
+
 ## Project setup
 ```
 npm install
