@@ -1,5 +1,6 @@
 <template>
   <v-container fluid id="searchDiv">
+    <canvas id="canvas"></canvas>
     <div id="leftBorder"></div>
     <v-row class="pad-bot-2">
       <v-col id="titleDiv" :md="5" :lg="3" class="mr-auto">
@@ -46,9 +47,6 @@
     <transition name="fade">
       <div id="imgDiv" v-show="showImgs"></div>
     </transition>
-    <!-- <h1 class="lom" style="text-align: left">00 - CREATE A COLOR PALETTE</h1>
-    <h1 class="lom" style="text-align: left">01 - FIND SWEATERS</h1> 
-    <h1 class="lom" style="text-align: left">02 - BE HAPPY(?)</h1> -->
   </v-container>
 </template>
 
@@ -56,7 +54,10 @@
 import PaletteBuilder from "@/components/PaletteBuilder.vue";
 import _ from "lodash";
 import * as diff from "color-diff";
-// import VueTypedJs from "vue-typed-js";
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
 export default {
   name: "SearchView",
   props: {
@@ -86,6 +87,7 @@ export default {
     PaletteBuilder,
   },
   mounted() {
+    this.initThree();
     this.showGif = true;
     let interval = 700;
     setTimeout(
@@ -229,6 +231,113 @@ export default {
       this.showImgs = true;
     },
     /**
+     * Initiates THREE.js background scene.
+     * - Camera tracks mouse hover movement
+     * - Considering design: floating sweaters in background?
+     *
+     */
+    initThree() {
+      const canvas = document.getElementById("canvas");
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+      canvas.width = this.width;
+      canvas.height = this.height;
+      this.scene = new THREE.Scene();
+      this.bgCol = new THREE.Color("rgb(255, 255, 255)");
+      // this.scene.fog = new THREE.Fog(1, 0, 10);
+      this.scene.background = this.bgCol;
+      {
+        const near = 0;
+        this.far = 6;
+        //this.scene.fog = new THREE.Fog(this.bgCol, near, this.far);
+      }
+
+      this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+      this.camera.position.z = 4;
+      this.camera.position.y = 1;
+
+      this.geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+      this.material = new THREE.MeshNormalMaterial();
+
+      this.mesh = new THREE.Mesh(this.geometry, this.material);
+      console.log(this.mesh);
+      this.mesh.position.y += 0.1;
+      this.scene.add(this.mesh);
+      this.renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+        alpha: false,
+      });
+      this.renderer.setSize(width, height);
+
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+      hemiLight.position.set(0, 0, 0);
+      this.scene.add(hemiLight);
+
+      //the camera rotation pivot
+      const orbit = new THREE.Object3D();
+      this.orbit = orbit;
+      console.log(this.orbit);
+      console.log(new THREE.Object3D());
+      this.orbit.rotation.order = "YXZ"; //this is important to keep level, so Z should be the last axis to rotate in order...
+      this.orbit.position.copy(this.mesh.position);
+      this.scene.add(this.orbit);
+
+      //offset the camera and add it to the pivot
+      //you could adapt the code so that you can 'zoom' by changing the z value in camera.position in a mousewheel event..
+      let cameraDistance = 1;
+      this.camera.position.z = cameraDistance;
+      this.orbit.add(this.camera);
+
+      console.log(this.orbit);
+      document.addEventListener(
+        "mousemove",
+        function (e) {
+          //console.log(e);
+          let scale = -0.0001;
+          console.log(this.orbit);
+          this.orbit.rotateY(e.movementX * scale);
+          this.orbit.rotateX(e.movementY * scale);
+          this.orbit.rotation.z = 0; //this is important to keep the camera level..
+        }.bind(this)
+      );
+
+      const dirLight = new THREE.DirectionalLight(0xffffff);
+      dirLight.position.set(-3, 10, -10);
+      dirLight.castShadow = true;
+      dirLight.shadow.camera.top = 2;
+      dirLight.shadow.camera.bottom = -2;
+      dirLight.shadow.camera.left = -2;
+      dirLight.shadow.camera.right = 2;
+      dirLight.shadow.camera.near = 0.1;
+      dirLight.shadow.camera.far = 40;
+
+      //this.scene.add(dirLight);
+      this.clock = new THREE.Clock();
+      this.time = 0;
+      this.delta = 0;
+
+      const size = 100;
+      const divisions = 50;
+
+      const gridHelper = new THREE.GridHelper(size, divisions);
+      //gridHelper.rotation.x += 0.2;
+      gridHelper.position.y = 0;
+      this.scene.add(gridHelper);
+
+      // this.controls.update();
+      this.animate();
+    },
+
+    animate() {
+      // required if controls.enableDamping or controls.autoRotate are set to true
+      // this.controls.update();
+      this.renderer.render(this.scene, this.camera);
+      requestAnimationFrame(this.animate);
+      // console.log(this.recievedScene, this.curScene);
+    },
+
+    /**
      * Return MICDP distance between two color palettes.
      * Palettes should have the same number of colors.
      * @param {Array} pal1    Should be array of objects with fields r,g,b
@@ -287,6 +396,10 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
+* {
+  z-index: auto;
+}
+
 #leftBorder {
   position: fixed;
   /* vertical-align: super; */
@@ -321,6 +434,7 @@ export default {
   height: 100%;
   margin: 2.5% auto 0% auto;
   text-align: center;
+  /* pointer-events: none; */
   /* border: 0.5px solid black; */
 }
 
@@ -402,6 +516,21 @@ p {
   /* width: 100%; */
   padding-top: 7%;
   margin: 0;
+}
+
+#canvas {
+  position: fixed;
+  padding: 0;
+  margin: 0;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+
+  z-index: -5;
 }
 
 @media screen and (min-width: 768px) {
