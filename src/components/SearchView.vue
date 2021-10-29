@@ -1,6 +1,5 @@
 <template>
   <v-container fluid id="searchDiv">
-    <canvas id="canvas"></canvas>
     <div id="leftBorder"></div>
     <v-row class="pad-bot-2">
       <v-col id="titleDiv" :md="5" :lg="3" class="mr-auto">
@@ -47,6 +46,7 @@
     <transition name="fade">
       <div id="imgDiv" v-show="showImgs"></div>
     </transition>
+    <canvas id="canvas"></canvas>
   </v-container>
 </template>
 
@@ -88,6 +88,7 @@ export default {
   },
   mounted() {
     this.initThree();
+    window.addEventListener("resize", this.handleResize);
     this.showGif = true;
     let interval = 700;
     setTimeout(
@@ -329,12 +330,18 @@ export default {
       this.animate();
     },
 
+    // Animate THREE.js scene
     animate() {
       // required if controls.enableDamping or controls.autoRotate are set to true
       // this.controls.update();
       this.renderer.render(this.scene, this.camera);
       requestAnimationFrame(this.animate);
-      // console.log(this.recievedScene, this.curScene);
+    },
+    handleResize() {
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.camera.aspect = window.innerWidth / window.innerHeight;
+      this.camera.updateProjectionMatrix();
+      // console.log("canvas should've resized");
     },
 
     /**
