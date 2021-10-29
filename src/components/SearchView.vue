@@ -128,6 +128,7 @@ export default {
 
       this.searchImgs();
     },
+
     // Find x images w/min MICDP distance to to user palette (this.userColors)
     searchImgs: function () {
       console.log("searching with these colors: ", this.userColors);
@@ -398,26 +399,9 @@ p {
 }
 
 #introGifDiv {
-  width: 30rem;
+  /* width: 100%; */
   padding-top: 7%;
-}
-
-@media screen and (min-width: 768px) {
-  .titleText {
-    font-size: 4em;
-    line-height: 0.85em;
-    font-weight: 400;
-    margin: 0px auto 0px auto;
-  }
-  .stepText {
-    font-family: proxima-nova, sans-serif;
-    font-size: 2em;
-    font-weight: 300;
-  }
-
-  .introGifWidth {
-    width: 20rem;
-  }
+  margin: 0;
 }
 
 @media screen and (min-width: 768px) {
@@ -435,6 +419,24 @@ p {
 
   .introGifWidth {
     width: 24rem;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .titleText {
+    font-size: 4em;
+    line-height: 0.85em;
+    font-weight: 400;
+    margin: 0px auto 0px auto;
+  }
+  .stepText {
+    font-family: proxima-nova, sans-serif;
+    font-size: 1.5em;
+    font-weight: 300;
+  }
+
+  .introGifWidth {
+    width: 19em;
   }
 }
 

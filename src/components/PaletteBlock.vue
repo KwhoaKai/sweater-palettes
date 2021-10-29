@@ -110,8 +110,8 @@ export default {
       } else if (bodyWidth >= 1000) {
         this.pickerWidth = 200;
         blocks.forEach((block) => {
-          block.style.width = "95px";
-          block.style.height = "95px";
+          block.style.width = "75px";
+          block.style.height = "75px";
         });
       } else if (bodyWidth >= 728) {
         this.pickerWidth = 150;
@@ -173,7 +173,7 @@ export default {
   }
 }
 
-@media screen and (min-width: 768px) {
+@media screen and (min-width: 1024px) {
   .colorDisplay {
     /* height: 85%; */
     width: 85%;

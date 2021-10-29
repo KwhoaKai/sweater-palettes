@@ -185,4 +185,31 @@ body {
   /* line-height: 2; */
   font-weight: bold;
 }
+
+@media screen and (max-width: 1280px) {
+  .side-vert-text {
+    transform: translate(60%, 15px);
+    font-size: 1.7em;
+    /* line-height: 2; */
+    font-weight: bold;
+  }
+}
+
+@media screen and (max-width: 1153px) {
+  .side-vert-text {
+    transform: translate(50%, 15px);
+    font-size: 1.7em;
+    /* line-height: 2; */
+    font-weight: bold;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .side-vert-text {
+    transform: translate(-10%, 15px);
+    font-size: 1.7em;
+    /* line-height: 2; */
+    font-weight: bold;
+  }
+}
 </style>
