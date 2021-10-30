@@ -87,7 +87,7 @@ export default {
     PaletteBuilder,
   },
   mounted() {
-    this.initThree();
+    // this.initThree();
     window.addEventListener("resize", this.handleResize);
     this.showGif = true;
     let interval = 700;
@@ -254,7 +254,7 @@ export default {
       }
 
       this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-      this.camera.position.z = 4;
+      this.camera.position.z = 0;
       this.camera.position.y = 1;
 
       this.geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
