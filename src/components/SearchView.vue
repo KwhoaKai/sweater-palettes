@@ -258,7 +258,12 @@ export default {
       this.camera.position.y = 1;
 
       this.geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-      this.material = new THREE.MeshNormalMaterial();
+      this.material = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: false,
+        opacity: 1,
+        overdraw: 0.5,
+      });
 
       this.mesh = new THREE.Mesh(this.geometry, this.material);
       console.log(this.mesh);
@@ -290,13 +295,13 @@ export default {
       this.camera.position.z = cameraDistance;
       this.orbit.add(this.camera);
 
-      console.log(this.orbit);
+      // console.log(this.orbit);
       document.addEventListener(
         "mousemove",
         function (e) {
           //console.log(e);
           let scale = -0.0001;
-          console.log(this.orbit);
+          //  console.log(this.orbit);
           this.orbit.rotateY(e.movementX * scale);
           this.orbit.rotateX(e.movementY * scale);
           this.orbit.rotation.z = 0; //this is important to keep the camera level..
@@ -326,7 +331,9 @@ export default {
       gridHelper.position.y = 0;
       this.scene.add(gridHelper);
 
+      this.initBgAnim();
       // this.controls.update();
+      this.tick = 0;
       this.animate();
     },
 
@@ -335,7 +342,77 @@ export default {
       // required if controls.enableDamping or controls.autoRotate are set to true
       // this.controls.update();
       this.renderer.render(this.scene, this.camera);
+      this.shapes.forEach((shape, i) => {
+        const speed = 0.05;
+        const rot = shape.rotYOffset;
+
+        //shape.rotation.x = rot;
+        shape.rotation.y = rot;
+      });
+
+      const range = 0.09;
+      const scale = 0.1;
+
+      // Idle bob object that camera is attached to
+      this.orbit.position.x = Math.cos(this.tick) * range;
+      this.orbit.position.y = Math.sin(this.tick) * range;
       requestAnimationFrame(this.animate);
+      this.tick += 0.02;
+      console.log(this.tick);
+    },
+    initBgAnim() {
+      const canvas = document.getElementById("canvas");
+      this.shapes = [];
+      // Instantiate new object textured by given image
+      function makeInstance(geom, img, x, y) {
+        console.log(img);
+        //const loader = new THREE.TextureLoader();
+        const texture = new THREE.TextureLoader().load(img);
+        texture.anisotropy = this.renderer.getMaxAnisotropy();
+        const imgmat = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          map: texture,
+        });
+
+        const obj = new THREE.Mesh(geom, imgmat);
+        this.scene.add(obj);
+
+        let xoff = canvas.clientWidth > 400 ? dir() * Math.random() * 0.6 : 0;
+
+        obj.position.x = x + xoff;
+        obj.position.y = y;
+        obj.rotYOffset = (dir() * Math.random() * Math.PI) / 6;
+        obj.scrollYMult = dir() * Math.random() * 2;
+        this.shapes.push(obj);
+        return obj;
+      }
+
+      // Box dimensions
+      const boxWidth = 3;
+      const boxHeight = 3;
+      const boxDepth = 0.01;
+      const boxgeom = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+
+      const xpad = boxWidth * 1.1;
+      const xoffset = 1 * boxWidth;
+      const ypad = boxHeight * 1.1;
+      const yoffset = 1.5 * boxHeight;
+
+      // img.src = `images/${distArr[i].key}`;
+
+      console.log(this.imgDict);
+      // let imgKeys = Object.keys(this.imgDict);
+      // // Render images in vertical column
+      // for (let i = 0; i < 50; i++) {
+      //   if (i > 50) {
+      //     break;
+      //   }
+
+      //   const path = `images/${imgKeys[i].key}`;
+      //   const xloc = 0;
+      //   const yloc = i * ypad - yoffset;
+      //   makeInstance(boxgeom, path, xloc, -yloc);
+      // }
     },
     handleResize() {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
