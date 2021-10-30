@@ -155,6 +155,7 @@ export default {
 html {
   height: 100%;
   width: 100%;
+  /* min-width: 1040px; */
 }
 
 body {

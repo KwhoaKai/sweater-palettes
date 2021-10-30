@@ -223,7 +223,10 @@ export default {
         imgDiv.appendChild(cap);
         imgDiv.appendChild(dist);
         img.src = `images/${distArr[i].key}`;
-        img.width = 250;
+
+        // set image width based on viewport width
+        let imgWidth = window.innerWidth < 1200 ? 200 : 250;
+        img.width = imgWidth;
         let imgScroll = document.getElementById("imgDiv");
         imgScroll.appendChild(imgDiv);
         //console.log(data[key].name);
