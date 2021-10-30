@@ -14,12 +14,15 @@
     </div>
 
     <div id="colorPickerDiv" class="pos-abs">
-      <ColorPicker
-        v-if="showColorPicker"
-        class="pos-rel picker"
-        @colChanged="setCols"
-        v-bind:width="pickerWidth"
-      />
+      <transition name="fade">
+        <ColorPicker
+          :setRgb="curRgb"
+          v-if="showColorPicker"
+          class="pos-rel picker"
+          @colChanged="setCols"
+          v-bind:width="pickerWidth"
+        />
+      </transition>
     </div>
   </v-col>
 </template>
@@ -63,6 +66,8 @@ export default {
     this.g = this.colObj.g;
     this.b = this.colObj.b;
     this.curHex = this.rgbToHex(this.colObj);
+    this.curRgb = { r: this.r, g: this.g, b: this.b };
+    // console.log(this.curRgb.r);
     this.setDims();
     window.addEventListener("resize", this.setDims);
     console.log("block mounted", this.colObj);
@@ -131,6 +136,17 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.fade-enter-active {
+  transition: opacity 0.2s;
+}
+
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+
 .pos-rel {
   position: relative;
 }

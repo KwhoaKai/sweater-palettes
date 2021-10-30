@@ -1,5 +1,11 @@
 <template>
-  <div ref="picker"></div>
+  <div
+    :style="{
+      'background-color': `rgb(${setRgb.r}, ${setRgb.g}, ${setRgb.b})`,
+    }"
+    class="pickerComponent"
+    ref="picker"
+  ></div>
 </template>
 
 <script>
@@ -7,6 +13,13 @@ import iro from "@jaames/iro";
 
 export default {
   props: {
+    setRgb: {
+      default: {
+        r: 255,
+        g: 255,
+        b: 255,
+      },
+    },
     value: {
       // type: String,
       default: "#ffffff",
@@ -165,6 +178,7 @@ export default {
     this.colorPicker.on("input:move", this.onInputMove);
     this.colorPicker.on("input:end", this.onInputEnd);
     this.colorPicker.on("mount", this.onMount);
+    // console.log(this.setRgb);
   },
   beforeUnmount() {
     this.colorPicker.off("input:end", this.onInput);
@@ -185,3 +199,39 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.pickerComponent {
+  /* outline: 2px black dashed; */
+  border-radius: 25px;
+  /* background-color: rgba(255, 255, 255); */
+  padding-bottom: 10%;
+}
+
+@media screen and (max-width: 1280px) {
+  .pickerComponent {
+    /* outline: 2px black dashed; */
+    border-radius: 25px;
+    /* background-color: rgba(255, 255, 255); */
+    padding-bottom: 10%;
+  }
+}
+
+@media screen and (max-width: 1153px) {
+  .pickerComponent {
+    /* outline: 2px black dashed; */
+    border-radius: 25px;
+    /* background-color: rgba(255, 255, 255); */
+    padding-bottom: 10%;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .pickerComponent {
+    /* outline: 2px black dashed; */
+    border-radius: 25px;
+    /* background-color: rgba(255, 255, 255); */
+    padding-bottom: 10%;
+  }
+}
+</style>

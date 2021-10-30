@@ -88,7 +88,7 @@ export default {
   },
   mounted() {
     // this.initThree();
-    window.addEventListener("resize", this.handleResize);
+    //window.addEventListener("resize", this.handleResize);
     this.showGif = true;
     let interval = 700;
     setTimeout(

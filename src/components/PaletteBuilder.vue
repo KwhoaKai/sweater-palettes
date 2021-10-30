@@ -24,6 +24,7 @@
     <v-col class="text-left no-pr no-pb no-pt" :lg="12" :md="12" no-gutters>
       <v-row col="12" :sm="12">
         <v-spacer></v-spacer>
+
         <PaletteBlock
           class="block-div no-pr"
           v-for="block in userColors"
