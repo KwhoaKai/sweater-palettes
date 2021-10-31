@@ -5,7 +5,7 @@
 A visual index of two thousand outerwear pieces, searchable by color palette. 
 <br>
 <br>
-<strong>Approximate repo size is 500 MB</strong>
+<strong>Repository includes all images and is approximately 200 MB of space</strong>
 <br>
 <br>
 
