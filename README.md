@@ -1,12 +1,12 @@
 # Sweater Palettes
 
-
-A visual index of two thousand outerwear pieces, searchable by color palette. 
-<br>
 [https://yikaikuo.com/Sweater-Palettes](https://yikaikuo.com/Sweater-Palettes)
 <br>
+A visual index of two thousand outerwear pieces, searchable by color palette. 
 <br>
-<strong>CLoners: Approximate repo size is 500 MB</strong>
+
+<br>
+<strong>Approximate repo size is 500 MB</strong>
 <br>
 
 <p align="center">
