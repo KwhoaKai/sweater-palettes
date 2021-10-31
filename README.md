@@ -2,10 +2,14 @@
 
 
 A visual index of two thousand outerwear pieces, searchable by color palette. 
-Build a color palette and find designer outerwear pieces ordered by color similarity.\ 
+<br>
+Build a color palette and find designer outerwear pieces ordered by color similarity.
+<br>
 <br>
 [https://yikaikuo.com/Sweater-Palettes](https://yikaikuo.com/Sweater-Palettes)
 <br>
+<br>
+
 <p align="center">
   <img height="500" src="./docs/screenshot1.png">  
 </p>
