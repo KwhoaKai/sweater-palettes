@@ -3,8 +3,6 @@
 
 A visual index of two thousand outerwear pieces, searchable by color palette. 
 <br>
-Build a color palette and find designer outerwear pieces ordered by color similarity.
-<br>
 <br>
 [https://yikaikuo.com/Sweater-Palettes](https://yikaikuo.com/Sweater-Palettes)
 <br>
@@ -14,6 +12,9 @@ Build a color palette and find designer outerwear pieces ordered by color simila
   <img height="500" src="./docs/screenshot1.png">  
 </p>
 
+<br>
+<strong>Cloners: Repository currently contains all images, approximate size of repo is 500 MB</strong>
+<br>
 
 ## Project setup
 ```
