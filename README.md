@@ -1,6 +1,6 @@
 # Sweater Palettes
 
-[https://yikaikuo.com/Sweater-Palettes](https://yikaikuo.com/sweater-palettes)
+[https://yikaikuo.com/sweater-palettes](https://yikaikuo.com/sweater-palettes)
 <br>
 A visual index of two thousand outerwear pieces, searchable by color palette. 
 <br>
