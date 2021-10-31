@@ -3,6 +3,6 @@ module.exports = {
     'vuetify'
   ],
   publicPath: process.env.NODE_ENV === 'production'
-    ? '/Sweater-Palettes/'
+    ? '/sweater-palettes/'
     : '/'
 }
