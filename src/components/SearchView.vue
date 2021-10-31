@@ -534,7 +534,7 @@ text.hover:hover {
 #leftBorder {
   position: fixed;
   /* vertical-align: super; */
-  height: 10000000px;
+  height: 100000px;
   transform: translate(-280%, -10%);
   width: 5px;
   border-left: 2px solid black;

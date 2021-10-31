@@ -1,8 +1,14 @@
 # Sweater Palettes
 
 
+Live at: [https://yikaikuo.com/Sweater-Palettes](https://yikaikuo.com/Sweater-Palettes)
 A visual index of two thousand outerwear pieces, searchable by color palette. 
 Build a color palette and find designer outerwear pieces ordered by color similarity. 
+
+<p align="center">
+  <img height="500" src="./docs/screenshot1.png">  
+</p>
+
 
 ## Project setup
 ```

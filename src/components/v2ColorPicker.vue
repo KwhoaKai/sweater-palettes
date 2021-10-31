@@ -202,7 +202,7 @@ export default {
 
 <style scoped>
 .pickerComponent {
-  /* outline: 2px black dashed; */
+  /* outline: 3px #001eff solid; */
   border-radius: 25px;
   /* background-color: rgba(255, 255, 255); */
   padding-bottom: 10%;
@@ -210,7 +210,7 @@ export default {
 
 @media screen and (max-width: 1280px) {
   .pickerComponent {
-    /* outline: 2px black dashed; */
+    /* outline: 2px black solid; */
     border-radius: 25px;
     /* background-color: rgba(255, 255, 255); */
     padding-bottom: 10%;
