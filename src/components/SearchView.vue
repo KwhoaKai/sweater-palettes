@@ -120,6 +120,7 @@ export default {
       stepsFaded: false,
       showGif: true,
       showImgs: false,
+      fadingSweaters: false,
     };
   },
   components: {
@@ -215,6 +216,7 @@ export default {
           let imgDiv = document.getElementById("imgDiv");
           imgDiv.textContent = "";
           // this.appendImages(distArr);
+          this.removeCurrentSweaters();
           this.renderSweaters(distArr);
         }.bind(this),
         600
@@ -229,7 +231,20 @@ export default {
       }.bind(this);
       document.addEventListener("wheel", handleWheel);
     },
+    /** Fade out and remove from canvas currently rendered sweater objects
+     *
+     */
+    removeCurrentSweaters() {
+      this.shapes.forEach((shape) => {
+        this.scene.remove(shape);
+      });
+    },
     renderSweaters(distArr) {
+      // Remove rendered sweaters and reset camera position
+      this.removeCurrentSweaters();
+      this.camera.position.z = 0;
+      this.camera.position.y = 1;
+
       // Instantiate new object textured by given image
       const makeInstance = function (geom, img, x, y, z) {
         // console.log(img);
@@ -246,7 +261,7 @@ export default {
         const canvas = document.getElementById("canvas");
         let xoff = () => (Math.random() <= 0.5 ? -1 : 1);
 
-        obj.position.x = x * xoff();
+        obj.position.x = x;
         obj.position.y = 1;
         obj.position.z = z;
         obj.rotYOffset = (dir() * Math.random() * Math.PI) / 6;
@@ -268,15 +283,17 @@ export default {
       const zpad = boxHeight * 0.75;
       const zoffset = 1 * boxHeight;
 
-      let leftright = 1;
+      let leftRight = 1;
       // Render image to rectangle type beat
       for (let i = 0; i < this.numResults; i++) {
         let key = distArr[i].key;
-        const xloc = xoffset * -leftright;
+        const xloc = xoffset * -leftRight;
+        console.log(xloc);
         const yloc = i * ypad - yoffset;
         const zloc = i * zpad;
         const source = `images/${key}`;
         // console.log(zloc);
+        leftRight = leftRight * -1;
         makeInstance(boxgeom, source, xloc, -yloc, -zloc);
       }
       // this.showImgs = true;
@@ -400,20 +417,20 @@ export default {
       //you could adapt the code so that you can 'zoom' by changing the z value in camera.position in a mousewheel event..
       let cameraDistance = 1;
       this.camera.position.z = cameraDistance;
-      this.orbit.add(this.camera);
+      // this.orbit.add(this.camera);
 
-      // console.log(this.orbit);
-      document.addEventListener(
-        "mousemove",
-        function (e) {
-          //console.log(e);
-          let scale = -0.0001;
-          //  console.log(this.orbit);
-          this.orbit.rotateY(e.movementX * scale);
-          this.orbit.rotateX(e.movementY * scale);
-          this.orbit.rotation.z = 0; //this is important to keep the camera level..
-        }.bind(this)
-      );
+      // Orbit move controls
+      // document.addEventListener(
+      //   "mousemove",
+      //   function (e) {
+      //     //console.log(e);
+      //     let scale = -0.0001;
+      //     //  console.log(this.orbit);
+      //     this.orbit.rotateY(e.movementX * scale);
+      //     this.orbit.rotateX(e.movementY * scale);
+      //     this.orbit.rotation.z = 0; //this is important to keep the camera level..
+      //   }.bind(this)
+      // );
 
       const dirLight = new THREE.DirectionalLight(0xffffff);
       dirLight.position.set(-3, 10, -10);
