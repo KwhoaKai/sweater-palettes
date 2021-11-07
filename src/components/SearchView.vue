@@ -147,6 +147,8 @@ export default {
       }.bind(this),
       interval * 3
     );
+
+    // Resize cirlcen
   },
   methods: {
     setUserColors: function (colors) {
