@@ -92,7 +92,10 @@ import _ from "lodash";
 import * as diff from "color-diff";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { GlitchPass } from "three/examples/jsm/postprocessing/GlitchPass.js";
+import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 
 export default {
   name: "SearchView",
@@ -123,7 +126,9 @@ export default {
     PaletteBuilder,
   },
   mounted() {
-    // this.initThree();
+    this.setupMouse();
+    this.postprocessing = {};
+    this.initThree();
     //window.addEventListener("resize", this.handleResize);
     this.showGif = true;
     let interval = 700;
@@ -184,8 +189,8 @@ export default {
 
         // Remove idx used by blocks from user palette object
         let userNoIdx = _.cloneDeep(this.userColors);
-        console.log(userNoIdx);
-        console.log(this.userColors);
+        // console.log(userNoIdx);
+        // console.log(this.userColors);
         userNoIdx.map((col) => {
           delete col.i;
           return JSON.parse(JSON.stringify(col));
@@ -209,12 +214,72 @@ export default {
         function () {
           let imgDiv = document.getElementById("imgDiv");
           imgDiv.textContent = "";
-          this.appendImages(distArr);
+          // this.appendImages(distArr);
+          this.renderSweaters(distArr);
         }.bind(this),
         600
       );
 
       // console.log(diff);
+    },
+    setupMouse() {
+      let handleWheel = function (event) {
+        // console.log(event);
+        this.camera.position.z = this.camera.position.z + event.deltaY * -0.01;
+      }.bind(this);
+      document.addEventListener("wheel", handleWheel);
+    },
+    renderSweaters(distArr) {
+      // Instantiate new object textured by given image
+      const makeInstance = function (geom, img, x, y, z) {
+        // console.log(img);
+        const texture = new THREE.TextureLoader().load(img);
+        texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+        const imgmat = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          map: texture,
+        });
+
+        let dir = () => (Math.random() <= 0.5 ? -1 : 1);
+        const obj = new THREE.Mesh(geom, imgmat);
+        this.scene.add(obj);
+        const canvas = document.getElementById("canvas");
+        let xoff = () => (Math.random() <= 0.5 ? -1 : 1);
+
+        obj.position.x = x * xoff();
+        obj.position.y = 1;
+        obj.position.z = z;
+        obj.rotYOffset = (dir() * Math.random() * Math.PI) / 6;
+        obj.scrollYMult = dir() * Math.random() * 2;
+        this.shapes.push(obj);
+        return obj;
+      }.bind(this);
+
+      let dir = () => (Math.random() <= 0.5 ? -1 : 1);
+
+      const boxWidth = 4.5;
+      const boxHeight = 4.5;
+      const boxDepth = 0.01;
+      const boxgeom = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+      const xpad = boxWidth * 1.1;
+      const xoffset = boxWidth;
+      const ypad = boxHeight * 1.1;
+      const yoffset = 1.5 * boxHeight;
+      const zpad = boxHeight * 0.75;
+      const zoffset = 1 * boxHeight;
+
+      let leftright = 1;
+      // Render image to rectangle type beat
+      for (let i = 0; i < this.numResults; i++) {
+        let key = distArr[i].key;
+        const xloc = xoffset * -leftright;
+        const yloc = i * ypad - yoffset;
+        const zloc = i * zpad;
+        const source = `images/${key}`;
+        // console.log(zloc);
+        makeInstance(boxgeom, source, xloc, -yloc, -zloc);
+      }
+      // this.showImgs = true;
     },
     appendImages(distArr) {
       for (let i = 0; i < this.numResults; i++) {
@@ -276,12 +341,13 @@ export default {
      * Initiates THREE.js background scene.
      * - Camera tracks mouse hover movement
      * - Considering design: floating sweaters in background?
-     *
      */
     initThree() {
+      this.shapes = [];
       const canvas = document.getElementById("canvas");
       let width = window.innerWidth;
       let height = window.innerHeight;
+
       canvas.width = this.width;
       canvas.height = this.height;
       this.scene = new THREE.Scene();
@@ -370,19 +436,43 @@ export default {
       const gridHelper = new THREE.GridHelper(size, divisions);
       //gridHelper.rotation.x += 0.2;
       gridHelper.position.y = 0;
-      this.scene.add(gridHelper);
+      // this.scene.add(gridHelper);
 
+      this.initPostprocessing();
       this.initBgAnim();
-      // this.controls.update();
       this.tick = 0;
       this.animate();
     },
 
+    initPostprocessing() {
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+
+      this.renderPass = new RenderPass(this.scene, this.camera);
+      this.bokehPass = new BokehPass(this.scene, this.camera, {
+        focus: 1.0,
+        aperture: 0.00003,
+        maxblur: 0.01,
+        width: width,
+        height: height,
+      });
+
+      this.composer = new EffectComposer(this.renderer);
+      console.log(this.composer);
+      console.log(this.renderPass);
+      console.log(this.bokehPass);
+
+      this.composer.addPass(this.renderPass);
+      this.composer.addPass(this.bokehPass);
+
+      this.postprocessing.composer = this.composer;
+      this.postprocessing.bokeh = this.bokehPass;
+    },
     // Animate THREE.js scene
     animate() {
       // required if controls.enableDamping or controls.autoRotate are set to true
-      // this.controls.update();
-      this.renderer.render(this.scene, this.camera);
+      // this.renderer.render(this.scene, this.camera);
+      this.composer.render();
       this.shapes.forEach((shape, i) => {
         const speed = 0.05;
         const rot = shape.rotYOffset;
@@ -397,68 +487,26 @@ export default {
       // Idle bob object that camera is attached to
       this.orbit.position.x = Math.cos(this.tick) * range;
       this.orbit.position.y = Math.sin(this.tick) * range;
-      requestAnimationFrame(this.animate);
+      requestAnimationFrame(this.animate.bind(this));
       this.tick += 0.02;
-      console.log(this.tick);
+      // console.log(this.tick);
     },
     initBgAnim() {
       const canvas = document.getElementById("canvas");
       this.shapes = [];
-      // Instantiate new object textured by given image
-      function makeInstance(geom, img, x, y) {
-        console.log(img);
-        //const loader = new THREE.TextureLoader();
-        const texture = new THREE.TextureLoader().load(img);
-        texture.anisotropy = this.renderer.getMaxAnisotropy();
-        const imgmat = new THREE.MeshBasicMaterial({
-          color: 0xffffff,
-          map: texture,
-        });
-
-        const obj = new THREE.Mesh(geom, imgmat);
-        this.scene.add(obj);
-
-        let xoff = canvas.clientWidth > 400 ? dir() * Math.random() * 0.6 : 0;
-
-        obj.position.x = x + xoff;
-        obj.position.y = y;
-        obj.rotYOffset = (dir() * Math.random() * Math.PI) / 6;
-        obj.scrollYMult = dir() * Math.random() * 2;
-        this.shapes.push(obj);
-        return obj;
-      }
-
-      // Box dimensions
-      const boxWidth = 3;
-      const boxHeight = 3;
-      const boxDepth = 0.01;
-      const boxgeom = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-
-      const xpad = boxWidth * 1.1;
-      const xoffset = 1 * boxWidth;
-      const ypad = boxHeight * 1.1;
-      const yoffset = 1.5 * boxHeight;
 
       // img.src = `images/${distArr[i].key}`;
 
       console.log(this.imgDict);
-      // let imgKeys = Object.keys(this.imgDict);
-      // // Render images in vertical column
-      // for (let i = 0; i < 50; i++) {
-      //   if (i > 50) {
-      //     break;
-      //   }
-
-      //   const path = `images/${imgKeys[i].key}`;
-      //   const xloc = 0;
-      //   const yloc = i * ypad - yoffset;
-      //   makeInstance(boxgeom, path, xloc, -yloc);
-      // }
     },
     handleResize() {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
+      this.postprocessing.composer.setSize(
+        window.innerWidth,
+        window.innerHeight
+      );
       // console.log("canvas should've resized");
     },
 

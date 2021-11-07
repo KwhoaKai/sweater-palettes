@@ -49,18 +49,6 @@
         </v-col>
       </v-row>
     </v-col>
-
-    <!-- <v-col :lg="12" :md="12">
-      <v-btn
-        v-on:click="searchClicked"
-        elevation="2"
-        outlined
-        :ripple="false"
-        :depressed="false"
-        class="justify-center"
-        >Search</v-btn
-      >
-    </v-col> -->
   </v-row>
 </template>
 
