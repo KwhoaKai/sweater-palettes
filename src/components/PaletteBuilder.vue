@@ -38,14 +38,24 @@
       <v-row col="12">
         <v-spacer></v-spacer>
         <v-col
-          :md="10"
-          :lg="10"
-          v-on:click="searchClicked"
+          :md="7"
+          :lg="7"
+          @click="searchClicked"
           class="cursor-pointer"
         >
-          <pre class="">SEARCH ––––– NOW</pre>
-          <pre>     SEARCH ––––– NOW</pre>
-          <pre>     SEARCH ––––– NOW</pre>
+          <pre class="hoverUnderline">SEARCH ––––– NOW</pre>
+          <pre class="hoverUnderline">     SEARCH ––––– NOW</pre>
+          <pre class="hoverUnderline">     SEARCH ––––– NOW</pre>
+        </v-col>
+
+        <v-col
+          :md="3"
+          :lg="3"
+          class="cursor-pointer"
+        >
+          <pre class="hoverUnderline" @click="gridClicked"><span  :style="gridButtonColor">GRID</span> ––––– </pre>
+          <pre class="hoverUnderline" @click="galleryClicked">––––– <span :style="galleryButtonColor">GALLERY</span> </pre>
+
         </v-col>
       </v-row>
     </v-col>
@@ -58,6 +68,7 @@ export default {
   name: "PaletteBuilder",
   props: {
     userColors: Array,
+    currentView: Object
   },
   data() {
     return {
@@ -65,7 +76,8 @@ export default {
     };
   },
   mounted() {
-    console.log("userColors prop in palette builder mount", this.userColors);
+    // console.log(this.currentView);
+    // console.log("userColors prop in palette builder mount", this.userColors);
     let _this = this;
 
     // Any click not on PaletteBock hides ColorPicker
@@ -89,7 +101,33 @@ export default {
   components: {
     PaletteBlock,
   },
+  computed: {
+    gridButtonColor() {
+      let textColor = this.currentView.GRID_VIEW ? "black" : "lightgrey";
+      let colObj = {
+        color: textColor
+      }
+      return colObj;
+    },
+    galleryButtonColor() {
+      let textColor = this.currentView.GALLERY_VIEW  ? "black" : "lightgrey";
+      let colObj = {
+        color: textColor
+      }
+      return colObj;
+    }
+  },
   methods: {
+     
+    gridClicked() {
+      // console.log("in gridclicked");
+      let newView = { GRID_VIEW: true, GALLERY_VIEW: false }
+      this.$emit("changeView", newView);   
+    },
+    galleryClicked() {
+      let newView = { GRID_VIEW: false, GALLERY_VIEW: true }
+      this.$emit("changeView", newView)
+    },
     setShowIdx(idx) {
       this.showIdx = idx;
       // console.log("set show index", idx);
@@ -102,7 +140,7 @@ export default {
       newCols[idx].g = newRgb.g;
       newCols[idx].b = newRgb.b;
       this.userColors = newCols;
-      console.log("usercols in palettebuilder", this.userColors);
+      // console.log("usercols in palettebuilder", this.userColors);
       this.$emit("setUserColors", this.userColors);
     },
     searchClicked() {
@@ -114,6 +152,11 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.hoverUnderline:hover {
+  text-decoration: underline;
+}
+
+
 .text-right {
   text-align: right;
 }

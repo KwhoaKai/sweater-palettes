@@ -10,6 +10,8 @@
       <v-col :md="6" :lg="7" :xl="7" class="text-left">
         <PaletteBuilder
           :userColors="userColors"
+          :currentView="currentView"
+          @changeView="setView"
           @setUserColors="setUserColors"
           @searchClicked="searchClicked"
         />
@@ -79,11 +81,11 @@
     </div>
 
     <transition name="fade">
-      <div id="imgDiv" v-show="showImgs"></div>
+      <div id="imgDiv" v-show="showGrid"></div>
     </transition>
 
     <transition name="fade">
-      <canvas v-show="show3d" id="canvas"></canvas>
+      <canvas v-show="showGallery" id="canvas"></canvas>
     </transition>
   </v-container>
 </template>
@@ -107,6 +109,10 @@ export default {
   },
   data() {
     return {
+      currentView: {
+        GRID_VIEW: false,  
+        GALLERY_VIEW: true // Initial gallery view
+      }, 
       userColors: [
         { i: 0, r: 212, g: 212, b: 212 }, // index used to track blocks
         { i: 1, r: 175, g: 175, b: 175 },
@@ -121,10 +127,11 @@ export default {
       showSteps: true,
       stepsFaded: false,
       showGif: true,
-      showImgs: false,
       fadingSweaters: false,
-      show3d: false,
-      shapes: [],
+      galleryReady: false,
+      gridReady: false,
+      sweaters: null,
+      haveSearchResults: false
     };
   },
   components: {
@@ -158,30 +165,48 @@ export default {
       interval * 3
     );
   },
+  computed: {
+    showGrid() {
+      return this.currentView.GRID_VIEW && this.gridReady && this.haveSearchResults;
+    },
+    showGallery() {
+      return this.currentView.GALLERY_VIEW && this.galleryReady && this.haveSearchResults;  
+    }
+  },
   methods: {
+    setView(viewObj) {
+      this.currentView = viewObj;
+      
+      
+      // Not best way to do this 
+      if (this.currentView.GALLERY_VIEW && this.galleryReady) {
+          this.animate(); 
+      }
+
+    },
     setUserColors: function (colors) {
       this.userColors = colors;
-      console.log("passed color obj in searchview", colors);
-      console.log("this.userColors searchview", this.userColors);
+      // console.log("passed color obj in searchview", colors);
+      // console.log("this.userColors searchview", this.userColors);
     },
     // perform some checks here, then search
     searchClicked: function () {
-      this.showImgs = false;
+      this.gridReady = false;
       this.showSteps = false;
       this.showGif = false;
-      this.show3d = false;
+      this.galleryReady = false;
 
-      console.log(
-        "this.userColors in searchview before search",
-        this.userColors
-      );
+      // console.log(
+      //   "this.userColors in searchview before search",
+      //   this.userColors
+      // );
 
       this.searchImgs();
     },
 
     // Find x images w/min MICDP distance to to user palette (this.userColors)
     searchImgs: function () {
-      console.log("searching with these colors: ", this.userColors);
+      // console.log("searching with these colors: ", this.userColors);
       let imgKeys = Object.keys(this.imgDict);
       let distArr = [];
       // console.log(this.userColors);
@@ -210,17 +235,20 @@ export default {
         return a.dist - b.dist;
       });
 
-      console.log(distArr.slice(0, 3), "fuck");
+      this.haveSearchResults = true;
 
       setTimeout(
         function () {
-          let imgDiv = document.getElementById("imgDiv");
-          imgDiv.textContent = "";
-          // this.appendImages(distArr);
-          // this.removeCurrentSweaters();
+
+          this.appendImages(distArr);
           this.renderSweaters(distArr);
-          // this.showImgs = true;
-          // this.show3d = true;
+
+          // if(this.currentView.GRID_VIEW) {
+          //   this.appendImages(distArr);
+          // } else if(this.currentView.GALLERY_VIEW) {
+          //   this.renderSweaters(distArr);
+          // }
+          
         }.bind(this),
         600
       );
@@ -231,8 +259,11 @@ export default {
       let handleWheel = function (event) {
         // console.log(event);
         // this.camera.position.z = this.camera.position.z + event.deltaY * -0.01;
-        this.orbit.position.z = this.orbit.position.z + event.deltaY * -0.01;
-        this.mesh.position.z = this.mesh.position.z + event.deltaY * -0.01;
+        if(this.currentView.GALLERY_VIEW) {
+          this.orbit.position.z = this.orbit.position.z + event.deltaY * -0.01;
+          this.mesh.position.z = this.mesh.position.z + event.deltaY * -0.01;
+        }
+        
       }.bind(this);
       document.addEventListener("wheel", handleWheel);
     },
@@ -240,20 +271,17 @@ export default {
      *
      */
     removeCurrentSweaters() {
-      console.log(this.shapes);
-      this.shapes.forEach((shape) => {
-        console.log(shape);
-        this.scene.remove(shape);
-        // shape.dispose(); need to dispose mesh, this doesn't work tho
-        shape.geometry.dispose();
-        shape.material.dispose();
-        shape.texture.dispose();
+      // console.log(this.sweaters);
 
-        shape=null;
+      this.sweaters.children.forEach((sweater) => {
+        this.scene.remove(sweater);
+        // shape.dispose(); need to dispose mesh, this doesn't work tho
+        sweater.geometry.dispose();
+        sweater.material.dispose();
+        sweater.texture.dispose();
       });
 
-      this.shapes.length = 0;
-      console.log(this.shapes);
+      this.sweaters.children = [];
     },
     /**
      * Show search results in 3d
@@ -277,7 +305,7 @@ export default {
 
         let dir = () => (Math.random() <= 0.5 ? -1 : 1);
         const obj = new THREE.Mesh(geom, imgmat);
-        this.scene.add(obj);
+        // this.scene.add(obj);
         // const canvas = document.getElementById("canvas");
         // let xoff = () => (Math.random() <= 0.5 ? -1 : 1);
 
@@ -288,13 +316,12 @@ export default {
         obj.scrollYMult = dir() * Math.random() * 2;
 
         // obj.rotation.y = obj.rotYOffset;
-        // console.log(rotYOffset);
         let xRot = 60 * (Math.PI / 180); 
         obj.rotation.y = xRot * xRotDir;
 
         // add texture loader as property of object
         obj.texture = texture;
-        this.shapes.push(obj);
+        this.sweaters.add(obj);
         return obj;
       }.bind(this);
 
@@ -316,7 +343,6 @@ export default {
       for (let i = 0; i < this.numResults; i++) {
         let key = distArr[i].key;
         const xloc = xoffset * -leftRight;
-        // console.log(xloc);
         const yloc = i * ypad - yoffset;
         const zloc = (1+i) * zpad;
 
@@ -327,16 +353,18 @@ export default {
         leftRight = leftRight * -1;
 
       }
-      console.log(this.shapes);
-      // this.showImgs = true;
+      this.scene.add(this.sweaters);
+      // this.gridReady = true;
       this.animate();
-      this.show3d = true;
+      this.galleryReady = true;
 
     },
     /**
      * Append 2d images with color palettes to document 
      */
     appendImages(distArr) {
+      let imgDiv = document.getElementById("imgDiv");
+      imgDiv.textContent = "";
 
       for (let i = 0; i < this.numResults; i++) {
         let key = distArr[i].key;
@@ -391,8 +419,8 @@ export default {
         //console.log(data[key].name);
       }
 
-      this.showImgs = true;
-      // this.show3d = true;
+      this.gridReady = true;
+      // this.galleryReady = true;
 
     },
     /**
@@ -442,8 +470,6 @@ export default {
       
       const orbit = new THREE.Object3D();
       this.orbit = orbit;
-      console.log(this.orbit);
-      console.log(new THREE.Object3D());
       this.orbit.rotation.order = "YXZ"; //this is important to keep level, so Z should be the last axis to rotate in order...
       this.orbit.position.copy(this.mesh.position);
       this.scene.add(this.mesh);
@@ -509,6 +535,8 @@ export default {
       this.initPostprocessing();
       this.tick = 0;
 
+      // Group for all sweater images 
+      this.sweaters = new THREE.Group();
     },
 
     initPostprocessing() {
@@ -539,7 +567,8 @@ export default {
      * - Handle scene updates ( camera movement, shape updates )
      */ 
     animate() {
-
+      // Only run animation loop if canvas is shown 
+      if(this.currentView.GALLERY_VIEW) {
       // required if controls.enableDamping or controls.autoRotate are set to true
       // this.renderer.render(this.scene, this.camera);
       this.composer.render();
@@ -558,7 +587,7 @@ export default {
 
       requestAnimationFrame(this.animate.bind(this));
       this.tick += 0.01;
-      // console.log(this.tick);
+      }
 
     },
     handleResize() {

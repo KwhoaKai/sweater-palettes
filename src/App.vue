@@ -34,8 +34,9 @@ export default {
 
     this.imgDict = parsedData[0];
     this.clustDict = parsedData[1];
-    console.log(this.clustDict);
-    console.log(this.imgDict);
+    console.log("Oh you thought I remembered to remove all my console logs?");
+    // console.log(this.clustDict);
+    // console.log(this.imgDict);
   },
   methods: {
     makePaletteObject(palArr) {

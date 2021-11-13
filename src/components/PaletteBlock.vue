@@ -70,8 +70,8 @@ export default {
     // console.log(this.curRgb.r);
     this.setDims();
     window.addEventListener("resize", this.setDims);
-    console.log("block mounted", this.colObj);
-    console.log(this.i, this.showIdx);
+    // console.log("block mounted", this.colObj);
+    // console.log(this.i, this.showIdx);
   },
   methods: {
     componentToHex(c) {
@@ -87,8 +87,8 @@ export default {
       );
     },
     setCols(colors) {
-      console.log("in setCols");
-      console.log(this.i, this.r, this.g, this.b, this.showIdx);
+      // console.log("in setCols");
+      // console.log(this.i, this.r, this.g, this.b, this.showIdx);
       this.curRgb = colors.colors.rgb;
       this.curHex = colors.colors.hex;
       this.$emit("setColor", { rgb: this.curRgb, hex: this.curHex }, this.i);
