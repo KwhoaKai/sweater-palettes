@@ -267,8 +267,7 @@ export default {
       this.camera.position.y = 1;
 
       // Instantiate new object textured by given image
-      const makeInstance = function (geom, img, x, y, z) {
-        // console.log(img);
+      const makeInstance = function (geom, img, x, y, z, xRotDir) {
         const texture = new THREE.TextureLoader().load(img);
         texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
         const imgmat = new THREE.MeshBasicMaterial({
@@ -279,8 +278,8 @@ export default {
         let dir = () => (Math.random() <= 0.5 ? -1 : 1);
         const obj = new THREE.Mesh(geom, imgmat);
         this.scene.add(obj);
-        const canvas = document.getElementById("canvas");
-        let xoff = () => (Math.random() <= 0.5 ? -1 : 1);
+        // const canvas = document.getElementById("canvas");
+        // let xoff = () => (Math.random() <= 0.5 ? -1 : 1);
 
         obj.position.x = x;
         obj.position.y = 1;
@@ -288,7 +287,10 @@ export default {
         obj.rotYOffset = (dir() * Math.random() * Math.PI) / 6;
         obj.scrollYMult = dir() * Math.random() * 2;
 
-        obj.rotation.y = obj.rotYOffset;
+        // obj.rotation.y = obj.rotYOffset;
+        // console.log(rotYOffset);
+        let xRot = 60 * (Math.PI / 180); 
+        obj.rotation.y = xRot * xRotDir;
 
         // add texture loader as property of object
         obj.texture = texture;
@@ -317,10 +319,13 @@ export default {
         // console.log(xloc);
         const yloc = i * ypad - yoffset;
         const zloc = (1+i) * zpad;
-        const source = `images/${key}`;
-        // console.log(zloc);
+
+        // Use images resized to 512 for now 
+        const source = `images/resized/512_${key}`;
+        let xRotDir = leftRight;
+        makeInstance(boxgeom, source, xloc, -yloc, -zloc, xRotDir);
         leftRight = leftRight * -1;
-        makeInstance(boxgeom, source, xloc, -yloc, -zloc);
+
       }
       console.log(this.shapes);
       // this.showImgs = true;
@@ -397,21 +402,22 @@ export default {
      */
     initThree() {
 
-      // this.shapes = [];
       const canvas = document.getElementById("canvas");
       let width = window.innerWidth;
       let height = window.innerHeight;
-
       canvas.width = this.width;
       canvas.height = this.height;
+
       this.scene = new THREE.Scene();
       this.bgCol = new THREE.Color("rgb(255, 255, 255)");
-      // this.scene.fog = new THREE.Fog(1, 0, 10);
       this.scene.background = this.bgCol;
+
       {
-        const near = 0;
-        this.far = 6;
-        //this.scene.fog = new THREE.Fog(this.bgCol, near, this.far);
+        // Fog to fade out far out listings 
+        const FOG_NEAR = 10;
+        const FOG_FAR = 50
+        const FOG_COLOR = 0xFFFFFF;
+        this.scene.fog = new THREE.Fog(FOG_COLOR, FOG_NEAR, FOG_FAR);
       }
 
       this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
@@ -453,24 +459,23 @@ export default {
       });
       this.renderer.setSize(width, height);
 
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
-      hemiLight.position.set(0, 0, 0);
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+      hemiLight.position.set(0, 0, -10);
       this.scene.add(hemiLight);
-
-     
-      this.scene.add(this.orbit);
+      
 
       //offset the camera and add it to the pivot
       //you could adapt the code so that you can 'zoom' by changing the z value in camera.position in a mousewheel event..
       let cameraDistance = 1;
       this.camera.position.z = cameraDistance;
       this.orbit.add(this.camera);
+      this.scene.add(this.orbit);
 
       // Orbit move controls
       document.addEventListener(
         "mousemove",
         function (e) {
-          let scale = -0.00035;
+          let scale = -0.0005;
           //  console.log(this.orbit);
           this.orbit.rotateY(e.movementX * scale);
           this.orbit.rotateX(e.movementY * scale);
@@ -493,7 +498,7 @@ export default {
       this.time = 0;
       this.delta = 0;
 
-      const size = this.numResults * 2.5;
+      const size = this.numResults * 5;
       const divisions = 10;
 
       const gridHelper = new THREE.GridHelper(size, divisions);
