@@ -82,7 +82,9 @@
       <div id="imgDiv" v-show="showImgs"></div>
     </transition>
 
-    <canvas id="canvas"></canvas>
+    <transition name="fade">
+      <canvas v-show="show3d" id="canvas"></canvas>
+    </transition>
   </v-container>
 </template>
 
@@ -121,6 +123,8 @@ export default {
       showGif: true,
       showImgs: false,
       fadingSweaters: false,
+      show3d: false,
+      shapes: [],
     };
   },
   components: {
@@ -130,7 +134,7 @@ export default {
     this.setupMouse();
     this.postprocessing = {};
     this.initThree();
-    //window.addEventListener("resize", this.handleResize);
+    window.addEventListener("resize", this.handleResize);
     this.showGif = true;
     let interval = 700;
     setTimeout(
@@ -153,8 +157,6 @@ export default {
       }.bind(this),
       interval * 3
     );
-
-    // Resize cirlcen
   },
   methods: {
     setUserColors: function (colors) {
@@ -167,6 +169,7 @@ export default {
       this.showImgs = false;
       this.showSteps = false;
       this.showGif = false;
+      this.show3d = false;
 
       console.log(
         "this.userColors in searchview before search",
@@ -208,16 +211,16 @@ export default {
       });
 
       console.log(distArr.slice(0, 3), "fuck");
-      console.log(distArr);
-      // this.appendImages(distArr);
 
       setTimeout(
         function () {
           let imgDiv = document.getElementById("imgDiv");
           imgDiv.textContent = "";
           // this.appendImages(distArr);
-          this.removeCurrentSweaters();
+          // this.removeCurrentSweaters();
           this.renderSweaters(distArr);
+          // this.showImgs = true;
+          // this.show3d = true;
         }.bind(this),
         600
       );
@@ -227,7 +230,9 @@ export default {
     setupMouse() {
       let handleWheel = function (event) {
         // console.log(event);
-        this.camera.position.z = this.camera.position.z + event.deltaY * -0.01;
+        // this.camera.position.z = this.camera.position.z + event.deltaY * -0.01;
+        this.orbit.position.z = this.orbit.position.z + event.deltaY * -0.01;
+        this.mesh.position.z = this.mesh.position.z + event.deltaY * -0.01;
       }.bind(this);
       document.addEventListener("wheel", handleWheel);
     },
@@ -235,13 +240,29 @@ export default {
      *
      */
     removeCurrentSweaters() {
+      console.log(this.shapes);
       this.shapes.forEach((shape) => {
+        console.log(shape);
         this.scene.remove(shape);
+        // shape.dispose(); need to dispose mesh, this doesn't work tho
+        shape.geometry.dispose();
+        shape.material.dispose();
+        shape.texture.dispose();
+
+        shape=null;
       });
+
+      this.shapes.length = 0;
+      console.log(this.shapes);
     },
+    /**
+     * Show search results in 3d
+     */
     renderSweaters(distArr) {
+
       // Remove rendered sweaters and reset camera position
       this.removeCurrentSweaters();
+
       this.camera.position.z = 0;
       this.camera.position.y = 1;
 
@@ -266,6 +287,11 @@ export default {
         obj.position.z = z;
         obj.rotYOffset = (dir() * Math.random() * Math.PI) / 6;
         obj.scrollYMult = dir() * Math.random() * 2;
+
+        obj.rotation.y = obj.rotYOffset;
+
+        // add texture loader as property of object
+        obj.texture = texture;
         this.shapes.push(obj);
         return obj;
       }.bind(this);
@@ -275,12 +301,12 @@ export default {
       const boxWidth = 4.5;
       const boxHeight = 4.5;
       const boxDepth = 0.01;
-      const boxgeom = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+      const boxgeom = new THREE.BoxBufferGeometry(boxWidth, boxHeight, boxDepth);
       const xpad = boxWidth * 1.1;
       const xoffset = boxWidth;
       const ypad = boxHeight * 1.1;
       const yoffset = 1.5 * boxHeight;
-      const zpad = boxHeight * 0.75;
+      const zpad = boxHeight * 0.5;
       const zoffset = 1 * boxHeight;
 
       let leftRight = 1;
@@ -288,17 +314,25 @@ export default {
       for (let i = 0; i < this.numResults; i++) {
         let key = distArr[i].key;
         const xloc = xoffset * -leftRight;
-        console.log(xloc);
+        // console.log(xloc);
         const yloc = i * ypad - yoffset;
-        const zloc = i * zpad;
+        const zloc = (1+i) * zpad;
         const source = `images/${key}`;
         // console.log(zloc);
         leftRight = leftRight * -1;
         makeInstance(boxgeom, source, xloc, -yloc, -zloc);
       }
+      console.log(this.shapes);
       // this.showImgs = true;
+      this.animate();
+      this.show3d = true;
+
     },
+    /**
+     * Append 2d images with color palettes to document 
+     */
     appendImages(distArr) {
+
       for (let i = 0; i < this.numResults; i++) {
         let key = distArr[i].key;
         // sweater div
@@ -353,6 +387,8 @@ export default {
       }
 
       this.showImgs = true;
+      // this.show3d = true;
+
     },
     /**
      * Initiates THREE.js background scene.
@@ -360,7 +396,8 @@ export default {
      * - Considering design: floating sweaters in background?
      */
     initThree() {
-      this.shapes = [];
+
+      // this.shapes = [];
       const canvas = document.getElementById("canvas");
       let width = window.innerWidth;
       let height = window.innerHeight;
@@ -377,26 +414,42 @@ export default {
         //this.scene.fog = new THREE.Fog(this.bgCol, near, this.far);
       }
 
-      this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-      this.camera.position.z = 0;
-      this.camera.position.y = 1;
+      this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+      
+      // this.camera.position.z = 0;
+      // this.camera.position.y = 1;
 
-      this.geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-      this.material = new THREE.MeshBasicMaterial({
+
+      // Create mesh and geometry to attach camera to for swivel view --------------------
+      let camBoxGeom = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+      let camBoxMat = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: false,
         opacity: 1,
         overdraw: 0.5,
       });
 
-      this.mesh = new THREE.Mesh(this.geometry, this.material);
-      console.log(this.mesh);
-      this.mesh.position.y += 0.1;
+      // Attach camera to mesh object 
+      this.mesh = new THREE.Mesh(camBoxGeom, camBoxMat);
+      // console.log(camBoxGeom);
+      // this.mesh.position.y += 0.1;
+      
+      const orbit = new THREE.Object3D();
+      this.orbit = orbit;
+      console.log(this.orbit);
+      console.log(new THREE.Object3D());
+      this.orbit.rotation.order = "YXZ"; //this is important to keep level, so Z should be the last axis to rotate in order...
+      this.orbit.position.copy(this.mesh.position);
       this.scene.add(this.mesh);
+
       this.renderer = new THREE.WebGLRenderer({
         canvas: canvas,
-        antialias: true,
+        antialias: false, 
         alpha: false,
+        powerPreference: "high-performance",
+        gammaFactor: 2.2,
+        outputEncoding: THREE.sRGBEncoding,
+        physicallyCorrectLights: true
       });
       this.renderer.setSize(width, height);
 
@@ -404,33 +457,26 @@ export default {
       hemiLight.position.set(0, 0, 0);
       this.scene.add(hemiLight);
 
-      //the camera rotation pivot
-      const orbit = new THREE.Object3D();
-      this.orbit = orbit;
-      console.log(this.orbit);
-      console.log(new THREE.Object3D());
-      this.orbit.rotation.order = "YXZ"; //this is important to keep level, so Z should be the last axis to rotate in order...
-      this.orbit.position.copy(this.mesh.position);
+     
       this.scene.add(this.orbit);
 
       //offset the camera and add it to the pivot
       //you could adapt the code so that you can 'zoom' by changing the z value in camera.position in a mousewheel event..
       let cameraDistance = 1;
       this.camera.position.z = cameraDistance;
-      // this.orbit.add(this.camera);
+      this.orbit.add(this.camera);
 
       // Orbit move controls
-      // document.addEventListener(
-      //   "mousemove",
-      //   function (e) {
-      //     //console.log(e);
-      //     let scale = -0.0001;
-      //     //  console.log(this.orbit);
-      //     this.orbit.rotateY(e.movementX * scale);
-      //     this.orbit.rotateX(e.movementY * scale);
-      //     this.orbit.rotation.z = 0; //this is important to keep the camera level..
-      //   }.bind(this)
-      // );
+      document.addEventListener(
+        "mousemove",
+        function (e) {
+          let scale = -0.00035;
+          //  console.log(this.orbit);
+          this.orbit.rotateY(e.movementX * scale);
+          this.orbit.rotateX(e.movementY * scale);
+          this.orbit.rotation.z = 0; //this is important to keep the camera level..
+        }.bind(this)
+      );
 
       const dirLight = new THREE.DirectionalLight(0xffffff);
       dirLight.position.set(-3, 10, -10);
@@ -447,21 +493,21 @@ export default {
       this.time = 0;
       this.delta = 0;
 
-      const size = 100;
-      const divisions = 50;
+      const size = this.numResults * 2.5;
+      const divisions = 10;
 
       const gridHelper = new THREE.GridHelper(size, divisions);
-      //gridHelper.rotation.x += 0.2;
-      gridHelper.position.y = 0;
-      // this.scene.add(gridHelper);
-
+      gridHelper.position.y = -1;
+      gridHelper.position.z = (size/2) * -0.8;  
+      // gridHelper.postition.z = -size/2;
+      this.scene.add(gridHelper);
       this.initPostprocessing();
-      this.initBgAnim();
       this.tick = 0;
-      this.animate();
+
     },
 
     initPostprocessing() {
+
       let width = window.innerWidth;
       let height = window.innerHeight;
 
@@ -475,48 +521,43 @@ export default {
       });
 
       this.composer = new EffectComposer(this.renderer);
-      console.log(this.composer);
-      console.log(this.renderPass);
-      console.log(this.bokehPass);
 
       this.composer.addPass(this.renderPass);
       this.composer.addPass(this.bokehPass);
 
       this.postprocessing.composer = this.composer;
       this.postprocessing.bokeh = this.bokehPass;
+
     },
-    // Animate THREE.js scene
+    /**
+     * Animate THREE.js scene
+     * - Handle scene updates ( camera movement, shape updates )
+     */ 
     animate() {
+
       // required if controls.enableDamping or controls.autoRotate are set to true
       // this.renderer.render(this.scene, this.camera);
       this.composer.render();
-      this.shapes.forEach((shape, i) => {
-        const speed = 0.05;
-        const rot = shape.rotYOffset;
 
-        //shape.rotation.x = rot;
-        shape.rotation.y = rot;
-      });
+      const RANGE = 0.09;
+      const SCALE = 0.1;
+      const Z_SCROLL = 0.006;
 
-      const range = 0.09;
-      const scale = 0.1;
+      // this.camera.position.z -= Z_SCROLL;
+      this.mesh.position.z -= Z_SCROLL;
+      this.orbit.position.z -= Z_SCROLL;
 
       // Idle bob object that camera is attached to
-      this.orbit.position.x = Math.cos(this.tick) * range;
-      this.orbit.position.y = Math.sin(this.tick) * range;
+      // this.orbit.position.x = Math.cos(this.tick) * range;
+      // this.orbit.position.y = Math.sin(this.tick) * range;
+
       requestAnimationFrame(this.animate.bind(this));
-      this.tick += 0.02;
+      this.tick += 0.01;
       // console.log(this.tick);
-    },
-    initBgAnim() {
-      const canvas = document.getElementById("canvas");
-      this.shapes = [];
 
-      // img.src = `images/${distArr[i].key}`;
-
-      console.log(this.imgDict);
     },
     handleResize() {
+
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
@@ -525,6 +566,7 @@ export default {
         window.innerHeight
       );
       // console.log("canvas should've resized");
+
     },
 
     /**
@@ -534,6 +576,7 @@ export default {
      * @param {Array} pal2    Should be array of objects with fields r,g,b
      */
     getPalDist(pal1, pal2) {
+
       const numCol = pal1.length;
       let pal1MinDists = [];
       let pal2MinDists = [];
@@ -561,14 +604,15 @@ export default {
       let distAvgPal2 = distSumPal2 / numCol;
       let grandAvg = (distAvgPal1 + distAvgPal2) / 2;
       return grandAvg;
-    },
 
+    },
     /**
      * Returns minimum CIEDE200 color difference between col and all colors in pal
      * @param {obj} col    Should have fields r,g,b
      * @param {Array} pal  Should be array of objects with fields r,g,b
      */
     getMinDist(col, pal) {
+
       let labCol = diff.rgb_to_lab(col);
       let minColDist = Infinity;
 
@@ -579,6 +623,7 @@ export default {
         minColDist = Math.min(colDiff, minColDist);
       }
       return minColDist;
+
     },
   },
 };

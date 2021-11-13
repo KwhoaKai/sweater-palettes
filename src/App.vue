@@ -164,6 +164,7 @@ body {
   width: 100%;
   max-width: 1350px;
   margin: auto;
+  /* overflow-y: hidden; */
 }
 
 #menuButton {
