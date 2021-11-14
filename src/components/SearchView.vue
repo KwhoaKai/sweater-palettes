@@ -409,7 +409,7 @@ export default {
         imgDiv.appendChild(palDiv);
         imgDiv.appendChild(cap);
         imgDiv.appendChild(dist);
-        img.src = `images/${distArr[i].key}`;
+        img.src = `images/resized/512_${distArr[i].key}`;
 
         // set image width based on viewport width
         let imgWidth = window.innerWidth < 1200 ? 200 : 250;
