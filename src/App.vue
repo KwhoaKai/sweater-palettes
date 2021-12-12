@@ -1,11 +1,8 @@
 <template>
   <div id="app">
     <div id="navDiv">
-      <!-- <TastyBurgerButton id="menuButton" type="slider" /> -->
       <h1 class="side-vert-text">外套色板</h1>
     </div>
-
-    <!-- <img alt="Vue logo" src="@/assets/logo.png" /> -->
     <SearchView :imgDict="imgDict" :clustDict="clustDict" />
   </div>
 </template>                                 
@@ -13,14 +10,11 @@
 <script>
 import SearchView from "@/components/SearchView.vue";
 import * as d3 from "d3";
-import firebase from "firebase";
 
 export default {
   name: "App",
   components: {
     SearchView,
-    // TastyBurgerButton,
-    //ClusterView
   },
   data() {
     return {
@@ -35,8 +29,6 @@ export default {
     this.imgDict = parsedData[0];
     this.clustDict = parsedData[1];
     console.log("Oh you thought I remembered to remove all my console logs?");
-    // console.log(this.clustDict);
-    // console.log(this.imgDict);
   },
   methods: {
     makePaletteObject(palArr) {

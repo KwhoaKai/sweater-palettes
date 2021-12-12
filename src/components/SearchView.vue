@@ -95,10 +95,8 @@ import PaletteBuilder from "@/components/PaletteBuilder.vue";
 import _ from "lodash";
 import * as diff from "color-diff";
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { GlitchPass } from "three/examples/jsm/postprocessing/GlitchPass.js";
 import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 
 export default {
@@ -218,8 +216,6 @@ export default {
 
         // Remove idx used by blocks from user palette object
         let userNoIdx = _.cloneDeep(this.userColors);
-        // console.log(userNoIdx);
-        // console.log(this.userColors);
         userNoIdx.map((col) => {
           delete col.i;
           return JSON.parse(JSON.stringify(col));
