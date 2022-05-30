@@ -498,9 +498,19 @@ export default {
         "mousemove",
         function (e) {
           let scale = -0.0005;
-          //  console.log(this.orbit);
-          this.orbit.rotateY(e.movementX * scale);
-          this.orbit.rotateX(e.movementY * scale);
+          console.log(this.orbit.rotationX, this.orbit.rotationY);
+          console.log(e.movementX, e.pageX, window.innerWidth);
+
+          // this.orbit.rotateY(e.movementX * scale);
+          // this.orbit.rotateX(e.movementY * scale);
+          let pageWidth = window.innerWidth;
+          let pageHeight = window.innerHeight;
+          let xrot = (e.pageX - pageWidth / 2) * scale;
+          let yrot = (e.pageY - pageHeight / 2) * scale;
+
+          // Horizontal movement on y axis and vice versa, intentional 
+          this.orbit.rotation.y = xrot;
+          this.orbit.rotation.x = yrot;
           this.orbit.rotation.z = 0; //this is important to keep the camera level..
         }.bind(this)
       );
