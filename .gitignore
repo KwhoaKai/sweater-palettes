@@ -2,4 +2,3 @@
 node_modules/
 storage.rules
 firebase.json
-dist/
