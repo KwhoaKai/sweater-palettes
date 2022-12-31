@@ -1,10 +1,10 @@
 <template>
   <v-container fluid id="searchDiv">
     <div id="leftBorder"></div>
-    <v-row class="pad-bot-2">
+    <v-row class="pad-bot-2 fixtop max-width">
       <v-col id="titleDiv" :md="5" :lg="3" class="mr-auto">
-        <h1 class="titleText">SWEATER</h1>
-        <h1 class="titleText">PALETTESS</h1>
+        <h1 class="titleText">_Sweater</h1>
+        <h1 class="titleText">___Palettes</h1>
       </v-col>
       <v-spacer></v-spacer>
       <v-col :md="6" :lg="7" :xl="7" class="text-left">
@@ -18,8 +18,9 @@
       </v-col>
     </v-row>
 
+    <!-- User instruction steps 0/1/2 -->
     <transition name="fade">
-      <div id="stepsDiv" style="float: left" v-if="showSteps">
+      <div id="stepsDiv" style="float: left" class="margtop-15em" v-if="showSteps">
         <transition name="fade">
           <h1 v-show="show1" class="stepText" style="text-align: left">
             00 - CREATE A COLOR PALETTE
@@ -39,13 +40,16 @@
         </transition>
       </div>
     </transition>
+
+    <!-- Animated GIF of sweaters -->
     <transition name="fade">
-      <div v-if="showGif" id="introGifDiv" style="float: right">
+      <div v-if="showGif" id="introGifDiv" style="float: right; margin-top: 208px;">
         <img class="introGifWidth" src="sweaterScroll.gif" />
       </div>
     </transition>
 
-    <div id="circle">
+    <!-- Rotating website link -->
+    <div id="circle" style="padding-top: 22em;">
       <svg
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"
@@ -80,12 +84,14 @@
       </svg>
     </div>
 
+    <!-- Grid view -->
     <transition name="fade">
-      <div id="imgDiv" v-show="showGrid"></div>
+      <div id="imgDiv" class="padtop-max" v-show="showGrid"></div>
     </transition>
 
+    <!-- 3d gallery view -->
     <transition name="fade">
-      <canvas v-show="showGallery" id="canvas"></canvas>
+      <canvas id="canvas" class="padtop-max" v-show="showGallery"></canvas>
     </transition>
   </v-container>
 </template>
@@ -175,12 +181,10 @@ export default {
     setView(viewObj) {
       this.currentView = viewObj;
       
-      
       // Not best way to do this 
       if (this.currentView.GALLERY_VIEW && this.galleryReady) {
           this.animate(); 
       }
-
     },
     setUserColors: function (colors) {
       this.userColors = colors;
@@ -235,16 +239,8 @@ export default {
 
       setTimeout(
         function () {
-
           this.appendImages(distArr);
           this.renderSweaters(distArr);
-
-          // if(this.currentView.GRID_VIEW) {
-          //   this.appendImages(distArr);
-          // } else if(this.currentView.GALLERY_VIEW) {
-          //   this.renderSweaters(distArr);
-          // }
-          
         }.bind(this),
         600
       );
@@ -283,15 +279,13 @@ export default {
      * Show search results in 3d
      */
     renderSweaters(distArr) {
-
       // Remove rendered sweaters and reset camera position
       this.removeCurrentSweaters();
-
       this.camera.position.z = 0;
       this.camera.position.y = 1;
 
       // Instantiate new object textured by given image
-      const makeInstance = function (geom, img, x, y, z, xRotDir) {
+      const makeInstance = function (geom, img, i, data, x, y, z, xRotDir) {
         const texture = new THREE.TextureLoader().load(img);
         texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
         const imgmat = new THREE.MeshBasicMaterial({
@@ -299,21 +293,27 @@ export default {
           map: texture,
         });
 
-        let dir = () => (Math.random() <= 0.5 ? -1 : 1);
         const obj = new THREE.Mesh(geom, imgmat);
-        // this.scene.add(obj);
-        // const canvas = document.getElementById("canvas");
-        // let xoff = () => (Math.random() <= 0.5 ? -1 : 1);
+        obj.userData = { "data": data,
+                         "rank": i 
+                       };
+
+        const xRot = 60 * (Math.PI / 180); 
+        const initYRot = xRot * xRotDir;
+        
+        // Rotation and position values
+        obj.initYRot = initYRot;
+        obj.targetYRot = initYRot; 
+        obj.initXPos = x;
+        obj.targetXPos = x;
+
+        obj.xRotDir = xRotDir;
 
         obj.position.x = x;
         obj.position.y = 1;
         obj.position.z = z;
-        obj.rotYOffset = (dir() * Math.random() * Math.PI) / 6;
-        obj.scrollYMult = dir() * Math.random() * 2;
 
-        // obj.rotation.y = obj.rotYOffset;
-        let xRot = 60 * (Math.PI / 180); 
-        obj.rotation.y = xRot * xRotDir;
+        obj.rotation.y = initYRot;
 
         // add texture loader as property of object
         obj.texture = texture;
@@ -321,44 +321,52 @@ export default {
         return obj;
       }.bind(this);
 
-      let dir = () => (Math.random() <= 0.5 ? -1 : 1);
-
       const boxWidth = 4.5;
       const boxHeight = 4.5;
       const boxDepth = 0.01;
       const boxgeom = new THREE.BoxBufferGeometry(boxWidth, boxHeight, boxDepth);
-      const xpad = boxWidth * 1.1;
-      const xoffset = boxWidth;
-      const ypad = boxHeight * 1.1;
-      const yoffset = 1.5 * boxHeight;
-      const zpad = boxHeight * 0.5;
-      const zoffset = 1 * boxHeight;
 
+      const xoffset = boxWidth;
+      const yoffset = 1.5 * boxHeight;
+
+      const ypad = boxHeight * 1.1;
+      const zpad = boxHeight * 0.5;
+      // const xpad = boxWidth * 1.1;
+      // const zoffset = 1 * boxHeight;
+
+      // Flips every loop to alternate sides to render image. 
       let leftRight = 1;
       // Render image to rectangle type beat
       for (let i = 0; i < this.numResults; i++) {
-        let key = distArr[i].key;
-        const xloc = xoffset * -leftRight;
+        const data = distArr[i];
+        let key = data.key;
+        const xloc = -xoffset * leftRight;
         const yloc = i * ypad - yoffset;
         const zloc = (1+i) * zpad;
 
         // Use images resized to 512 for now 
         const source = `images/resized/512_${key}`;
         let xRotDir = leftRight;
-        makeInstance(boxgeom, source, xloc, -yloc, -zloc, xRotDir);
+        makeInstance(boxgeom, source, i, data, xloc, -yloc, -zloc, xRotDir);
         leftRight = leftRight * -1;
-
       }
       this.scene.add(this.sweaters);
-      // this.gridReady = true;
+      
+    
+      // I hate living lmao 
+      // 
+      if(this.animReqID !== null) {
+        cancelAnimationFrame(this.animReqID);
+      }
       this.animate();
       this.galleryReady = true;
-
     },
     /**
      * Append 2d images with color palettes to document 
      */
     appendImages(distArr) {
+      console.log(distArr);
+      console.log(this.imgDict);
       let imgDiv = document.getElementById("imgDiv");
       imgDiv.textContent = "";
 
@@ -374,7 +382,7 @@ export default {
         let cap = document.createElement("p");
         cap.innerHTML = capText;
 
-        // sweater distanced
+        // sweater distance
         let distText = distArr[i].dist;
         let dist = document.createElement("p");
         dist.innerHTML = `MICDP Distance: ${distText.toFixed(2)}`;
@@ -383,8 +391,8 @@ export default {
         let palDiv = document.createElement("div");
         for (let i = 0; i < 5; i++) {
           // Parse color and scale to [0, 255]
-          let rgb_obj = this.imgDict[key].palette[i];
-          let rgb = JSON.parse(JSON.stringify(rgb_obj));
+          let rgbObj = this.imgDict[key].palette[i];
+          let rgb = JSON.parse(JSON.stringify(rgbObj));
           // console.log(rgb);
           let col = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
 
@@ -403,8 +411,8 @@ export default {
         // add text to sweater div
         imgDiv.appendChild(img);
         imgDiv.appendChild(palDiv);
-        imgDiv.appendChild(cap);
         imgDiv.appendChild(dist);
+        imgDiv.appendChild(cap);
         img.src = `images/resized/512_${distArr[i].key}`;
 
         // set image width based on viewport width
@@ -417,7 +425,6 @@ export default {
 
       this.gridReady = true;
       // this.galleryReady = true;
-
     },
     /**
      * Initiates THREE.js background scene.
@@ -425,7 +432,6 @@ export default {
      * - Considering design: floating sweaters in background?
      */
     initThree() {
-
       const canvas = document.getElementById("canvas");
       let width = window.innerWidth;
       let height = window.innerHeight;
@@ -445,6 +451,8 @@ export default {
       }
 
       this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 50);
+      this.raycaster = new THREE.Raycaster();
+      this.mouse3d = new THREE.Vector2();
       
       // this.camera.position.z = 0;
       // this.camera.position.y = 1;
@@ -485,7 +493,6 @@ export default {
       hemiLight.position.set(0, 0, -10);
       this.scene.add(hemiLight);
       
-
       //offset the camera and add it to the pivot
       //you could adapt the code so that you can 'zoom' by changing the z value in camera.position in a mousewheel event..
       let cameraDistance = 1;
@@ -493,25 +500,12 @@ export default {
       this.orbit.add(this.camera);
       this.scene.add(this.orbit);
 
-      // Orbit move controls
+      // Camera follows mouse movement, handle image hovering in 3d view 
       document.addEventListener(
         "mousemove",
         function (e) {
-          let scale = -0.0005;
-          console.log(this.orbit.rotationX, this.orbit.rotationY);
-          console.log(e.movementX, e.pageX, window.innerWidth);
-
-          // this.orbit.rotateY(e.movementX * scale);
-          // this.orbit.rotateX(e.movementY * scale);
-          let pageWidth = window.innerWidth;
-          let pageHeight = window.innerHeight;
-          let xrot = (e.pageX - pageWidth / 2) * scale;
-          let yrot = (e.pageY - pageHeight / 2) * scale;
-
-          // Horizontal movement on y axis and vice versa, intentional 
-          this.orbit.rotation.y = xrot;
-          this.orbit.rotation.x = yrot;
-          this.orbit.rotation.z = 0; //this is important to keep the camera level..
+          this.handleCameraMovement(e);
+          this.handle3dHover(e);
         }.bind(this)
       );
 
@@ -536,15 +530,86 @@ export default {
       const gridHelper = new THREE.GridHelper(size, divisions);
       gridHelper.position.y = -1;
       gridHelper.position.z = (size/2) * -0.8;  
+      gridHelper.name = "gridHelper";
       // gridHelper.postition.z = -size/2;
       this.scene.add(gridHelper);
       this.initPostprocessing();
-      this.tick = 0;
+      // this.tick = 0;
 
       // Group for all sweater images 
       this.sweaters = new THREE.Group();
     },
+    // Returns the angle between two points  in degrees or radians
+    angle2Points(p1, p2, degrees=false) {
+      const angleRadians = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+      const angleDeg = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
 
+      return degrees ? angleDeg : angleRadians;
+    },
+    /** Handles 3d object interactions on mouse hover. 
+        Ex: Sets image target rotation to face camera on hover
+        
+        @param {MouseEvent} e    MouseEvent event from "mousemove" event listener 
+     */
+    handle3dHover(e) {
+      // Get objects intersecting with mouse raytracer
+      this.mouse3d.x = (e.clientX / window.innerWidth) * 2 - 1;
+      this.mouse3d.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      this.raycaster.setFromCamera(this.mouse3d, this.camera);
+      let intersects = this.raycaster.intersectObject(this.scene, true);
+      
+      // Update target y rotation based on camera position within this z
+      const distThresh = 15;
+      if (intersects.length > 0 && intersects[0].object.name != "gridHelper") {
+        // console.log(intersects.length);
+        const object = intersects[0].object;// Update target y rotation based on camera position within this z
+        
+        // Get camera world position 
+        var cameraVector = new THREE.Vector3();
+        this.camera.getWorldPosition( cameraVector );
+        
+        const cameraPos = {
+          y: cameraVector.z,
+          x: cameraVector.x
+        }
+
+        const objPos = {
+          y: object.position.z,
+          x: object.position.x
+        }
+
+        const dist = cameraPos.y - objPos.y;
+        if(dist <= distThresh) {
+          const ang = this.angle2Points(cameraPos, objPos);
+          const angDist = dist <= 4 ? ang : ang/2;
+          console.log(object.xRotDir);
+          const angUse = object.xRotDir < 0 
+                         ? angDist 
+                         : angDist;
+          object.targetYRot = angUse;
+          object.targetXPos = object.initXPos + (dist/7 * object.xRotDir);
+          // console.log(object.initXPos, object.xRotDir, object.targetXPos);
+          // object.rotation.y = ang;  
+          // object.material.color.set( Math.random() * 0xffffff );
+        }
+        this.curObjIntersectKey = object.userData.data.key;
+      } else {
+        this.curObjIntersectKey = "";
+      }
+    },
+    handleCameraMovement(e) {
+      // Calculate camera rotations from mouse window position
+      const scale = -0.0005;
+      const pageWidth = window.innerWidth;
+      const pageHeight = window.innerHeight;
+      const xrot = (e.pageX - pageWidth / 2) * scale;
+      const yrot = (e.pageY - pageHeight / 2) * scale;
+
+      // Horizontal movement on y axis and vice versa, intentional 
+      this.orbit.rotation.y = xrot;
+      this.orbit.rotation.x = yrot;
+      this.orbit.rotation.z = 0; // keep the camera level
+    },
     initPostprocessing() {
 
       let width = window.innerWidth;
@@ -569,33 +634,76 @@ export default {
 
     },
     /**
+     * Handles updates to gallery objects in 3d view
+     * 
+     * Currently handles:
+     * - Making imgs rotate towards the camera/reset to neutral 
+     * 
+     *  @param {Array} objArr    Array of THREE.js Object3Ds to update 
+     */
+    updateGalleryObjs() {
+      // Check for object intersection if in GALLERY_VIEW 
+      if(this.currentView.GALLERY_VIEW) {
+        const speed = 0.04;
+        this.sweaters.children.forEach((sweater) => {
+          const key = sweater.userData.data.key;
+          const curYRot = sweater.rotation.y; 
+          const curXPos = sweater.position.x;
+
+          const targetYRot = key == this.curObjIntersectKey ? sweater.targetYRot : sweater.initYRot;
+          const targetXPos = key == this.curObjIntersectKey ? sweater.targetXPos : sweater.initXPos;
+
+          // Update current rotation w/lerp() if not close to target
+          const lerp = (x, y, a) => x * (1 - a) + y * a;
+          if (Math.abs(targetYRot - curYRot) < 0.0000001) {
+            sweater.rotation.y = targetYRot;
+          } else {
+            const newYRot = lerp(curYRot, targetYRot, speed) ;
+            const newXPos = lerp(curXPos, targetXPos, speed);
+            sweater.rotation.y = newYRot;
+            sweater.position.x = newXPos;
+          }
+        });
+      }
+    },
+    updateThree() {
+      this.updateGalleryObjs();
+    },
+    startAnimation() {
+
+      const requestID = this.animate()
+    },
+    /**
      * Animate THREE.js scene
      * - Handle scene updates ( camera movement, shape updates )
      */ 
     animate() {
       // Only run animation loop if canvas is shown 
       if(this.currentView.GALLERY_VIEW) {
-      // required if controls.enableDamping or controls.autoRotate are set to true
-      // this.renderer.render(this.scene, this.camera);
-      this.composer.render();
+        // required if controls.enableDamping or controls.autoRotate are set to true
+        // this.renderer.render(this.scene, this.camera); 
+        this.animReqID = requestAnimationFrame(this.animate.bind(this));
+        this.updateThree();
+        this.composer.render();
+        
 
-      const RANGE = 0.09;
-      const SCALE = 0.1;
-      const Z_SCROLL = 0.006;
+        const RANGE = 0.09;
+        const SCALE = 0.1;
+        const Z_SCROLL = 0.006;
 
-      // this.camera.position.z -= Z_SCROLL;
-      this.mesh.position.z -= Z_SCROLL;
-      this.orbit.position.z -= Z_SCROLL;
+        // this.camera.position.z -= Z_SCROLL;
+        this.mesh.position.z -= Z_SCROLL;
+        this.orbit.position.z -= Z_SCROLL;
 
-      // Idle bob object that camera is attached to
-      // this.orbit.position.x = Math.cos(this.tick) * range;
-      // this.orbit.position.y = Math.sin(this.tick) * range;
-
-      requestAnimationFrame(this.animate.bind(this));
-      this.tick += 0.01;
-      }
-
+        // Idle bob object that camera is attached to
+        // this.orbit.position.x = Math.cos(this.tick) * range;
+        // this.orbit.position.y = Math.sin(this.tick) * range;
+        // this.tick += 0.01;
+      } 
     },
+    /**
+     * Resize the THREE.js scene on window resize 
+     */
     handleResize() {
 
       this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -606,7 +714,6 @@ export default {
         window.innerHeight
       );
       // console.log("canvas should've resized");
-
     },
 
     /**
@@ -675,6 +782,23 @@ export default {
   z-index: auto;
 }
 
+.padtop-max {
+  padding-top: 13em;
+}
+
+.margtop-15em {
+  margin-top: 208px;
+}
+
+.max-width {
+  max-width: 62.37%;
+}
+
+.fixtop {
+  z-index: 10;
+  position: fixed;
+}
+
 text.hover {
   text-decoration: none;
 }
@@ -707,7 +831,7 @@ text.hover:hover {
   display: inline-block;
   border: 0.5px solid black;
   width: 10%;
-  height: 30px;
+  height: 24px;
   padding-left: 0px;
   padding-right: 0px;
 }
@@ -775,8 +899,9 @@ p {
 }
 
 #titleDiv {
+  /* letter-spacing: normal; */
   text-align: left;
-  margin: 0px auto 0px auto;
+  margin: 10px auto 0px auto;
   /* transform: translateY(-50%); */
   width: 100%;
 }
@@ -854,9 +979,10 @@ p {
 
 @media screen and (min-width: 1280px) {
   .titleText {
-    font-size: 4.5em;
+    font-size: 4em;
+    letter-spacing: -0.5px;
     line-height: 0.85em;
-    font-weight: 400;
+    font-weight: 600;
     margin: 0px auto 0px auto;
   }
 

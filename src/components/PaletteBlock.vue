@@ -68,8 +68,8 @@ export default {
     this.curHex = this.rgbToHex(this.colObj);
     this.curRgb = { r: this.r, g: this.g, b: this.b };
     // console.log(this.curRgb.r);
-    this.setDims();
-    window.addEventListener("resize", this.setDims);
+    this.setDimsViewport();
+    window.addEventListener("resize", this.setDimsViewport);
     // console.log("block mounted", this.colObj);
     // console.log(this.i, this.showIdx);
   },
@@ -102,7 +102,7 @@ export default {
         this.$emit("setShowIdx", this.i);
       }
     },
-    setDims() {
+    setDimsBody() {
       let bodyWidth = document.body.clientWidth;
       let blocks = document.getElementsByClassName("colorDisplay");
       // console.log(bodyWidth, "inner width");
@@ -125,11 +125,48 @@ export default {
           block.style.height = "75px";
         });
       }
+    },
+    setDimsViewport() {
+      console.log(Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0));
+      const viewWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+      let blocks = document.getElementsByClassName("colorDisplay");
+      // console.log(viewWidth, "inner width");
+      if (viewWidth >= 1950) {
+        this.pickerWidth = 250;
+        blocks.forEach((block) => {
+          block.style.width = "120px";
+          block.style.height = "120px";
+        });
+      } else if (viewWidth >= 1700) {
+        this.pickerWidth = 250;
+        blocks.forEach((block) => {
+          block.style.width = "100px";
+          block.style.height = "100px";
+        });
+      } else if (viewWidth >= 1450) {
+        this.pickerWidth = 200;
+        blocks.forEach((block) => {
+          block.style.width = "90px";
+          block.style.height = "90px";
+        });
+      } else if (viewWidth >= 728) {
+        this.pickerWidth = 150;
+        blocks.forEach((block) => {
+          block.style.width = "75px";
+          block.style.height = "75px";
+        });
+      } else {
+          this.pickerWidth = 150;
+          blocks.forEach((block) => {
+          block.style.width = "65px";
+          block.style.height = "65px";
+        });
+      }
       // console.log(this.pickerWidth);
     },
   },
   destroyed() {
-    window.removeEventListener("resize", this.setDims);
+    window.removeEventListener("resize", this.setDimsViewport);
   },
 };
 </script>

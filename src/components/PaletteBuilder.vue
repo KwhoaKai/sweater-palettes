@@ -1,27 +1,16 @@
 <template>
   <v-row id="builder-div">
-    <!-- <v-col class="text-right no-pr no-pb" :lg="12" :md="12" no-gutters>
-      <p>Please select five colors.</p>
-    </v-col> -->
     <v-spacer></v-spacer>
     <v-col class="no-pr no-pb pad-t12" :lg="10" :md="10" no-gutters>
-      <!-- <p>Please select five colors.</p> -->
       <span style="float: left" class="text-bold bar-toptext">
         请选择五种颜色 - PLEASE SELECT 5 COLORS
       </span>
       <p style="float: right" class="text-bold bar-toptext trans-left">
         2021年 - 9月
       </p>
-      <!-- <span
-        v-on:click="searchClicked"
-        style="float: right"
-        class="text-bold bar-toptext trans-left-down search-text"
-      >
-        SEARCH
-      </span> -->
     </v-col>
 
-    <v-col class="text-left no-pr no-pb no-pt" :lg="12" :md="12" no-gutters>
+    <v-col class="text-left no-pr no-pb no-pt" :lg="12" :md="12" no-gutters> 
       <v-row col="12" :sm="12">
         <v-spacer></v-spacer>
 
@@ -154,6 +143,7 @@ export default {
 <style scoped>
 .hoverUnderline:hover {
   text-decoration: underline;
+  /* font-weight: 600; */
 }
 
 

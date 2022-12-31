@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div id="navDiv">
+    <div id="navDiv" style="position: fixed;">
       <h1 class="side-vert-text">外套色板</h1>
     </div>
     <SearchView :imgDict="imgDict" :clustDict="clustDict" />
@@ -28,7 +28,6 @@ export default {
 
     this.imgDict = parsedData[0];
     this.clustDict = parsedData[1];
-    console.log("Oh you thought I remembered to remove all my console logs?");
   },
   methods: {
     makePaletteObject(palArr) {
@@ -171,6 +170,8 @@ body {
 #navDiv {
   float: left;
   transform: translateX(150%);
+  /* transform: translateX(1000%); */
+  padding-top: 5px;
   writing-mode: vertical-lr;
 }
 
@@ -178,7 +179,7 @@ body {
   transform: translate(80%, 15px);
   font-size: 1.7em;
   /* line-height: 2; */
-  font-weight: bold;
+  font-weight: 600;
 }
 
 @media screen and (max-width: 1280px) {
