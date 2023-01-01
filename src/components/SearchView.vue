@@ -351,10 +351,9 @@ export default {
         leftRight = leftRight * -1;
       }
       this.scene.add(this.sweaters);
-      
     
       // I hate living lmao 
-      // 
+      // Kill active requestAnimationFrame() to avoid duplicate requests
       if(this.animReqID !== null) {
         cancelAnimationFrame(this.animReqID);
       }
@@ -457,7 +456,6 @@ export default {
       // this.camera.position.z = 0;
       // this.camera.position.y = 1;
 
-
       // Create mesh and geometry to attach camera to for swivel view --------------------
       let camBoxGeom = new THREE.BoxGeometry(0.2, 0.2, 0.2);
       let camBoxMat = new THREE.MeshBasicMaterial({
@@ -474,7 +472,7 @@ export default {
       
       const orbit = new THREE.Object3D();
       this.orbit = orbit;
-      this.orbit.rotation.order = "YXZ"; //this is important to keep level, so Z should be the last axis to rotate in order...
+      this.orbit.rotation.order = "YXZ"; // this is important to keep level, so Z should be the last axis to rotate in order...
       this.orbit.position.copy(this.mesh.position);
       this.scene.add(this.mesh);
 
@@ -557,7 +555,8 @@ export default {
       this.mouse3d.y = -(e.clientY / window.innerHeight) * 2 + 1;
       this.raycaster.setFromCamera(this.mouse3d, this.camera);
       let intersects = this.raycaster.intersectObject(this.scene, true);
-      
+      // Clear current intersection
+      this.curObjIntersectKey = "";
       // Update target y rotation based on camera position within this z
       const distThresh = 15;
       if (intersects.length > 0 && intersects[0].object.name != "gridHelper") {
@@ -581,21 +580,27 @@ export default {
         const dist = cameraPos.y - objPos.y;
         if(dist <= distThresh) {
           const ang = this.angle2Points(cameraPos, objPos);
-          const angDist = dist <= 4 ? ang : ang/2;
-          console.log(object.xRotDir);
+
+          let angDist;
+          if(dist <= 4) {
+            angDist = object.xRotDir < 0 
+                      ? ang
+                      : ang + Math.PI/3;
+          } else {
+            angDist = object.xRotDir < 0 
+                      ? ang/3
+                      : ang/2;
+          }
+
           const angUse = object.xRotDir < 0 
-                         ? angDist 
-                         : angDist;
+                         ? angDist
+                         : -(angDist + Math.PI/4);
           object.targetYRot = angUse;
-          object.targetXPos = object.initXPos + (dist/7 * object.xRotDir);
-          // console.log(object.initXPos, object.xRotDir, object.targetXPos);
-          // object.rotation.y = ang;  
+          object.targetXPos = object.initXPos + (dist/4 * object.xRotDir);
           // object.material.color.set( Math.random() * 0xffffff );
         }
         this.curObjIntersectKey = object.userData.data.key;
-      } else {
-        this.curObjIntersectKey = "";
-      }
+      } 
     },
     handleCameraMovement(e) {
       // Calculate camera rotations from mouse window position
@@ -668,10 +673,6 @@ export default {
     },
     updateThree() {
       this.updateGalleryObjs();
-    },
-    startAnimation() {
-
-      const requestID = this.animate()
     },
     /**
      * Animate THREE.js scene
