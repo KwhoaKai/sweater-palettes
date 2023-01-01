@@ -124,7 +124,7 @@ export default {
         { i: 3, r: 51, g: 51, b: 51 },
         { i: 4, r: 0, g: 0, b: 0 },
       ],
-      numResults: 50,
+      numResults: 75,
       show1: false,
       show2: false,
       show3: false,
@@ -219,15 +219,15 @@ export default {
         let imgPalette = this.imgDict[key]["palette"];
 
         // Remove idx used by blocks from user palette object
-        let userNoIdx = _.cloneDeep(this.userColors);
-        userNoIdx.map((col) => {
+        let userPalNoIdx = _.cloneDeep(this.userColors);
+        userPalNoIdx.map((col) => {
           delete col.i;
           return JSON.parse(JSON.stringify(col));
         });
 
         // Calculate MICDP dist. between user pal and this pal
         let pal1PalParse = JSON.parse(JSON.stringify(imgPalette));
-        let palDist = this.getPalDist(pal1PalParse, userNoIdx);
+        let palDist = this.getPalDist(pal1PalParse, userPalNoIdx);
         distArr.push({ key: key, dist: palDist });
       }
 
@@ -281,8 +281,10 @@ export default {
     renderSweaters(distArr) {
       // Remove rendered sweaters and reset camera position
       this.removeCurrentSweaters();
-      this.camera.position.z = 0;
       this.camera.position.y = 1;
+      this.mesh.position.z = 3;
+      this.orbit.position.z = 3;
+      console.log(this.camera.position.z, this.mesh.position.z, this.orbit.position.z);
 
       // Instantiate new object textured by given image
       const makeInstance = function (geom, img, i, data, x, y, z, xRotDir) {
@@ -460,8 +462,8 @@ export default {
       let camBoxGeom = new THREE.BoxGeometry(0.2, 0.2, 0.2);
       let camBoxMat = new THREE.MeshBasicMaterial({
         color: 0xffffff,
-        transparent: false,
-        opacity: 1,
+        transparent: true,
+        opacity: 0,
         overdraw: 0.5,
       });
 
@@ -469,16 +471,16 @@ export default {
       this.mesh = new THREE.Mesh(camBoxGeom, camBoxMat);
       // console.log(camBoxGeom);
       // this.mesh.position.y += 0.1;
-      
       const orbit = new THREE.Object3D();
       this.orbit = orbit;
+
       this.orbit.rotation.order = "YXZ"; // this is important to keep level, so Z should be the last axis to rotate in order...
       this.orbit.position.copy(this.mesh.position);
       this.scene.add(this.mesh);
 
       this.renderer = new THREE.WebGLRenderer({
         canvas: canvas,
-        antialias: false, 
+        antialias: true, 
         alpha: false,
         powerPreference: "high-performance",
         gammaFactor: 2.2,
@@ -600,6 +602,7 @@ export default {
           // object.material.color.set( Math.random() * 0xffffff );
         }
         this.curObjIntersectKey = object.userData.data.key;
+        // console.log(object.userData);
       } 
     },
     handleCameraMovement(e) {
@@ -686,7 +689,6 @@ export default {
         this.animReqID = requestAnimationFrame(this.animate.bind(this));
         this.updateThree();
         this.composer.render();
-        
 
         const RANGE = 0.09;
         const SCALE = 0.1;
@@ -952,8 +954,8 @@ p {
   .stepText {
     font-family: proxima-nova, sans-serif;
     font-size: 2em;
-    /* font-weight: 300; */
-    font-weight: 400;
+    font-weight: 300;
+    /* font-weight: 400; */
   }
 
   .introGifWidth {
@@ -971,8 +973,8 @@ p {
   .stepText {
     font-family: proxima-nova, sans-serif;
     font-size: 1.5em;
-    /* font-weight: 300; */
-    font-weight: 400;
+    font-weight: 300;
+    /* font-weight: 400; */
   }
 
   .introGifWidth {
@@ -992,8 +994,8 @@ p {
   .stepText {
     font-family: proxima-nova, sans-serif;
     font-size: 2em;
-    /* font-weight: 300; */
-    font-weight: 400;
+    font-weight: 300;
+    /* font-weight: 400; */
   }
 
   .introGifWidth {
