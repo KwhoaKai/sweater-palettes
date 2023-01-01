@@ -29,7 +29,7 @@
 
         <transition name="fade">
           <h1 v-show="show2" class="stepText" style="text-align: left">
-            01 - FIND SWEATERS
+            01 - SEARCH THE $DB
           </h1>
         </transition>
 
@@ -952,7 +952,8 @@ p {
   .stepText {
     font-family: proxima-nova, sans-serif;
     font-size: 2em;
-    font-weight: 300;
+    /* font-weight: 300; */
+    font-weight: 400;
   }
 
   .introGifWidth {
@@ -970,7 +971,8 @@ p {
   .stepText {
     font-family: proxima-nova, sans-serif;
     font-size: 1.5em;
-    font-weight: 300;
+    /* font-weight: 300; */
+    font-weight: 400;
   }
 
   .introGifWidth {
@@ -990,7 +992,8 @@ p {
   .stepText {
     font-family: proxima-nova, sans-serif;
     font-size: 2em;
-    font-weight: 300;
+    /* font-weight: 300; */
+    font-weight: 400;
   }
 
   .introGifWidth {
