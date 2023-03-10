@@ -10,7 +10,7 @@
         请选择五种颜色 - PLEASE SELECT 5 COLORS
       </span>
       <p style="float: right" class="text-bold bar-toptext trans-left">
-        2021年 - 9月
+        2023年 - ?月
       </p>
       <!-- <span
         v-on:click="searchClicked"
