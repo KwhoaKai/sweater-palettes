@@ -70,8 +70,6 @@ export default {
     // console.log(this.curRgb.r);
     this.setDims();
     window.addEventListener("resize", this.setDims);
-    // console.log("block mounted", this.colObj);
-    // console.log(this.i, this.showIdx);
   },
   methods: {
     componentToHex(c) {

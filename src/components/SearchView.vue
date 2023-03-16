@@ -87,11 +87,17 @@
     <transition name="fade">
       <canvas v-show="showGallery" id="canvas"></canvas>
     </transition>
+
+    <!-- info card 3d -->
+    <transition name="fade">
+      <InfoCard3d v-show="showInfo3d" :initUserPalette="userColors" :initHoverData="getCurIntersectInfo"/> 
+    </transition>
   </v-container>
 </template>
 
 <script>
 import PaletteBuilder from "@/components/PaletteBuilder.vue";
+import InfoCard3d from "@/components/InfoCard3d.vue";
 import _ from "lodash";
 import * as diff from "color-diff";
 import * as THREE from "three";
@@ -129,11 +135,14 @@ export default {
       galleryReady: false,
       gridReady: false,
       sweaters: null,
-      haveSearchResults: false
+      haveSearchResults: false,
+      showInfoCard3d: false,
+      curObjIntersectKey: null
     };
   },
   components: {
     PaletteBuilder,
+    InfoCard3d
   },
   mounted() {
     this.setupMouse();
@@ -169,6 +178,18 @@ export default {
     },
     showGallery() {
       return this.currentView.GALLERY_VIEW && this.galleryReady && this.haveSearchResults;  
+    },
+    showInfo3d() {
+      return this.showInfoCard3d && this.currentView.GALLERY_VIEW;
+    },
+    getCurIntersectInfo() {
+      // console.log(this.clustDict[this.curObjIntersectKey])
+      // let info = this.curObjIntersectKey !=  ? this.imgDict[this.curObjIntersectKey] : null;
+      
+      // Passing null throwing errors, try passing empty object
+      let info = this.curObjIntersectKey != null ? this.imgDict[this.curObjIntersectKey] : {};
+      console.log(info, " getCurinasdfas");
+      return info;
     }
   },
   methods: {
@@ -180,7 +201,6 @@ export default {
       if (this.currentView.GALLERY_VIEW && this.galleryReady) {
           this.animate(); 
       }
-
     },
     setUserColors: function (colors) {
       this.userColors = colors;
@@ -283,6 +303,7 @@ export default {
      * Show search results in 3d
      */
     renderSweaters(distArr) {
+      // console.log(this.imgDict, this.clustDict);
       // Remove rendered sweaters and reset camera position
       this.removeCurrentSweaters();
       this.camera.position.y = 1;
@@ -346,7 +367,6 @@ export default {
       }
       this.scene.add(this.sweaters);
     
-      // I hate living lmao 
       // Kill active requestAnimationFrame() to avoid duplicate requests
       if(this.animReqID !== null) {
         cancelAnimationFrame(this.animReqID);
@@ -358,8 +378,6 @@ export default {
      * Append 2d images with color palettes to document 
      */
     appendImages(distArr) {
-      console.log(distArr);
-      console.log(this.imgDict);
       let imgDiv = document.getElementById("imgDiv");
       imgDiv.textContent = "";
       for (let i = 0; i < this.numResults; i++) {
@@ -509,7 +527,16 @@ export default {
       // Group for all sweater images 
       this.sweaters = new THREE.Group();
     },
-    // Returns the angle between two points  in degrees or radians
+    /** Returns angle between two points in degrees or radians 
+        
+        @param {Object} p1    Object represeting a point, holds x and y keys
+        @param p1.x 
+        @param p1.y
+        @param {Object} p2    Object represeting a point, holds x and y keys
+        @param p2.x 
+        @param p2.y 
+        @param {Boolean} degrees  Toggle between radians and degrees
+     */
     angle2Points(p1, p2, degrees=false) {
       const angleRadians = Math.atan2(p2.y - p1.y, p2.x - p1.x);
       const angleDeg = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
@@ -526,13 +553,12 @@ export default {
       this.mouse3d.y = -(e.clientY / window.innerHeight) * 2 + 1;
       this.raycaster.setFromCamera(this.mouse3d, this.camera);
       let intersects = this.raycaster.intersectObject(this.scene, true);
-      // Clear current intersection
-      this.curObjIntersectKey = "";
-      // Update target y rotation based on camera position within this z
-      const distThresh = 15;
+
+      // console.log(this.curObjIntersectKey);
+
       if (intersects.length > 0 && intersects[0].object.name != "gridHelper") {
         // console.log(intersects.length);
-        const object = intersects[0].object;// Update target y rotation based on camera position within this z
+        const object = intersects[0].object; // Update target y rotation based on camera position within this z
         
         // Get camera world position 
         var cameraVector = new THREE.Vector3();
@@ -546,7 +572,11 @@ export default {
           y: object.position.z,
           x: object.position.x
         }
+
+        // Update target y rotation based on camera position within this
+        const distThresh = 15;
         const dist = cameraPos.y - objPos.y;
+        
         if(dist <= distThresh) {
           const ang = this.angle2Points(cameraPos, objPos);
           let angDist;
@@ -564,11 +594,22 @@ export default {
                          : -(angDist + Math.PI/4);
           object.targetYRot = angUse;
           object.targetXPos = object.initXPos + (dist/4 * object.xRotDir);
-          // object.material.color.set( Math.random() * 0xffffff );
+
+          // restart anim if new object
+          const objKey = object.userData.data.key;
+          // console.log(object.userData.data);
+          // console.log(this.clustDict[this.curObjIntersectKey])
+          // console.log(this.imgDict[objKey]);
+          this.showInfoCard3d = true;
+          this.restartInfoCard3d = objKey != this.curObjIntersectKey 
+          this.curObjIntersectKey = objKey; 
         }
-        this.curObjIntersectKey = object.userData.data.key;
+        
         // console.log(object.userData);
-      } 
+      } else {
+        this.curObjIntersectKey = null; 
+        this.showInfoCard3d = false; 
+      }
     },
     handleCameraMovement(e) {
       // Calculate camera rotations from mouse window position
@@ -609,14 +650,15 @@ export default {
      * Handles updates to gallery objects in 3d view
      * 
      * Currently handles:
-     * - Making imgs rotate towards the camera/reset to neutral 
+     * - Making imgs rotate towards the camera on mouseover
      * 
-     *  @param {Array} objArr    Array of THREE.js Object3Ds to update 
+     *  @param {Array} objArr    Array of THREE.js Object3Ds in gallery to update 
      */
     updateGalleryObjs() {
       // Check for object intersection if in GALLERY_VIEW 
       if(this.currentView.GALLERY_VIEW) {
-        const speed = 0.04;
+        // console.log(this.curObjIntersectKey, this.showInfoCard3d, this.restartInfoCard3d);
+        const speed = 0.05;
         this.sweaters.children.forEach((sweater) => {
           const key = sweater.userData.data.key;
           const curYRot = sweater.rotation.y; 
@@ -636,6 +678,9 @@ export default {
         });
       }
     },
+    /**
+     * Handles updates to 3d scene at every frame of animate()
+     */
     updateThree() {
       this.updateGalleryObjs();
     },
@@ -653,10 +698,13 @@ export default {
         this.composer.render();
         const RANGE = 0.09;
         const SCALE = 0.1;
-        const Z_SCROLL = 0.006;
+        const Z_SCROLL = 0.004;
+        const Z_STOP_MULT = .5;
+        const Z_MOVE = Z_SCROLL;
+
         // this.camera.position.z -= Z_SCROLL;
-        this.mesh.position.z -= Z_SCROLL;
-        this.orbit.position.z -= Z_SCROLL;
+        this.mesh.position.z -= Z_MOVE;
+        this.orbit.position.z -= Z_MOVE;
         // Idle bob object that camera is attached to
         // this.orbit.position.x = Math.cos(this.tick) * range;
         // this.orbit.position.y = Math.sin(this.tick) * range;
@@ -773,6 +821,7 @@ text.hover:hover {
   opacity: 0;
 }
 
+
 .col_block {
   display: inline-block;
   border: 0.5px solid black;
@@ -788,6 +837,7 @@ text.hover:hover {
   margin: 2.5% auto 0% auto;
   text-align: center;
   /* pointer-events: none; */
+  position: relative;
   /* border: 0.5px solid black; */
 }
 
