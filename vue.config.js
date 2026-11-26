@@ -2,7 +2,7 @@ module.exports = {
   transpileDependencies: [
     'vuetify'
   ],
-  publicPath: process.env.NODE_ENV === 'production'
-    ? '/sweater-palettes/'
-    : '/'
+  // Site is served from the domain root (https://sweaterpalettes.com),
+  // previously it lived under https://yikaikuo.com/sweater-palettes/
+  publicPath: '/'
 }
